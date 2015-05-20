@@ -1,4 +1,4 @@
-libs
+libs/*/
 obj
 bin
 gen
