@@ -3,5 +3,12 @@ obj
 bin
 gen
 
+jni/src/HLSDK
+jni/src/NanoGL
+jni/src/SDL2
+jni/src/SDL2_image
+jni/src/Xash3D
+jni/src/XashXT
+
 local.properties
 
