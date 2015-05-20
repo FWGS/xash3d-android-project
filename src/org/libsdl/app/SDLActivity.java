@@ -2,16 +2,48 @@ package org.libsdl.app;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.lang.reflect.Method;
 
-import android.app.*;
-import android.content.*;
-import android.view.*;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.util.SparseArray;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.InputDevice;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -20,13 +52,11 @@ import android.widget.AbsoluteLayout;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.os.*;
-import android.util.Log;
-import android.util.SparseArray;
-import android.graphics.*;
-import android.graphics.drawable.Drawable;
-import android.media.*;
-import android.hardware.*;
+
+import com.beloko.games.hl.NativeLib;
+import com.beloko.touchcontrols.ControlInterpreter;
+import com.beloko.touchcontrols.Settings;
+import com.beloko.touchcontrols.TouchControlsSettings;
 
 /**
     SDL Activity
@@ -58,6 +88,9 @@ public class SDLActivity extends Activity {
     // Audio
     protected static AudioTrack mAudioTrack;
 
+	//Touch control interp
+	public static ControlInterpreter controlInterp;
+
     /**
      * This method is called by SDL before loading the native shared libraries.
      * It can be overridden to provide names of shared libraries to be loaded.
@@ -73,6 +106,7 @@ public class SDLActivity extends Activity {
             // "SDL2_mixer",
             // "SDL2_net",
             // "SDL2_ttf",
+				"touchcontrols",
             "xash"
         };
     }
@@ -118,6 +152,15 @@ public class SDLActivity extends Activity {
         Log.v("SDL", "Model: " + android.os.Build.MODEL);
         Log.v("SDL", "onCreate():" + mSingleton);
         super.onCreate(savedInstanceState);
+
+		// fullscreen
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		// keep screen on 
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         SDLActivity.initialize();
         // So we can call stuff from static callbacks
@@ -918,8 +961,22 @@ class SDLMain implements Runnable {
     @Override
     public void run() {
         // Runs SDL_main()
-        SDLActivity.nativeInit(SDLActivity.mSingleton.getArguments());
 
+		NativeLib engine = new NativeLib();
+		engine.initTouchControls_if(SDLActivity.mSingleton.getFilesDir().toString() + "/",
+				(int)SDLSurface.mWidth, (int)SDLSurface.mHeight);
+
+		SDLActivity.controlInterp = new ControlInterpreter(engine,Settings.IDGame.Doom,Settings.gamePadControlsFile,Settings.gamePadEnabled);
+
+		SDLActivity.controlInterp.setScreenSize((int)SDLSurface.mWidth, (int)SDLSurface.mHeight);
+
+		TouchControlsSettings.setup(SDLActivity.mSingleton, engine);
+		TouchControlsSettings.loadSettings(SDLActivity.mSingleton);
+		TouchControlsSettings.sendToQuake();
+
+		Settings.copyPNGAssets(SDLActivity.mSingleton,SDLActivity.mSingleton.getFilesDir().toString() + "/",null);   
+
+		SDLActivity.nativeInit(SDLActivity.mSingleton.getArguments()); 
         //Log.v("SDL", "SDL thread terminated");
     }
 }
@@ -1094,7 +1151,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         // Dispatch the different events depending on where they come from
         // Some SOURCE_DPAD or SOURCE_GAMEPAD are also SOURCE_KEYBOARD
         // So, we try to process them as DPAD or GAMEPAD events first, if that fails we try them as KEYBOARD
-        /*
+
         if ( (event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0 ||
                    (event.getSource() & InputDevice.SOURCE_DPAD) != 0 ) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -1119,16 +1176,6 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
                 SDLActivity.onNativeKeyUp(keyCode);
                 return true;
             }
-        }    */
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                //Log.v("SDL", "key down: " + keyCode);
-                SDLActivity.onNativeKeyDown(keyCode);
-                return true;
-            }
-            else if (event.getAction() == KeyEvent.ACTION_UP) {
-                //Log.v("SDL", "key up: " + keyCode);
-                SDLActivity.onNativeKeyUp(keyCode);
-                return true;
             }
 
         return false;
@@ -1137,7 +1184,13 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
     // Touch events
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+
+
+		SDLActivity.controlInterp.onTouchEvent(event);
+		return true;
+
         /* Ref: http://developer.android.com/training/gestures/multi.html */
+		/*
         final int touchDevId = event.getDeviceId();
         final int pointerCount = event.getPointerCount();
         int action = event.getActionMasked();
@@ -1145,6 +1198,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         int mouseButton;
         int i = -1;
         float x,y,p;
+
 
         // !!! FIXME: dump this SDK check after 2.0.4 ships and require API14.
         if (event.getSource() == InputDevice.SOURCE_MOUSE && SDLActivity.mSeparateMouseAndTouch) {
@@ -1204,6 +1258,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         }
 
         return true;
+		 */
    }
 
     // Sensor events
@@ -1275,7 +1330,7 @@ class DummyEdit extends View implements View.OnKeyListener {
     public boolean onKey(View v, int keyCode, KeyEvent event) {
 
         // This handles the hardware keyboard input
-        if (event.isPrintingKey() || keyCode == 62) {
+		if (event.isPrintingKey() || keyCode == 62) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 ic.commitText(String.valueOf((char) event.getUnicodeChar()), 1);
             }
@@ -1337,7 +1392,7 @@ class SDLInputConnection extends BaseInputConnection {
          */
         int keyCode = event.getKeyCode();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (event.isPrintingKey() || keyCode == 62) {
+			if (event.isPrintingKey()|| keyCode == 62) {
                 commitText(String.valueOf((char) event.getUnicodeChar()), 1);
             }
             SDLActivity.onNativeKeyDown(keyCode);
