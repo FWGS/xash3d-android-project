@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Button;
+import android.net.Uri;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -94,10 +95,14 @@ public class LauncherActivity extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
 		if (resultCode == RESULT_OK) {
 try{
-			final List<String> paths = resultData.getData().getPathSegments();
+			Uri pathUri = resultData.getData();
+			final List<String> paths = pathUri.getPathSegments();
 			String[] parts = paths.get(1).split(":");
+			//TODO: Do some workaround regarding the external storage path issue: External storage location showing as internal(emulated/0) on some devices such as Samsung.
 			String storagepath = Environment.getExternalStorageDirectory().getPath() + "/";
 			String path = storagepath + parts[1];
+			//Fresh persistent permissions. (For higher API levels of Android)
+			getContentResolver().takePersistableUriPermission(pathUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 			if( path != null)
 				resPath.setText( path );
 			resPath.setEnabled(true);
