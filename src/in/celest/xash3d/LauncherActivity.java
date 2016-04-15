@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Button;
+import android.net.Uri;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -94,12 +95,21 @@ public class LauncherActivity extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
 		if (resultCode == RESULT_OK) {
 try{
-			final List<String> paths = resultData.getData().getPathSegments();
+			Uri pathUri = resultData.getData();
+			final List<String> paths = pathUri.getPathSegments();
 			String[] parts = paths.get(1).split(":");
+			// TODO: Do some workaround regarding the external storage path issue: External storage location showing as internal(emulated/0) on some devices such as Samsung.
+            // Maybe try to extract the exact location from URI instead of faking it with getExternalStorageDirectory() ?
 			String storagepath = Environment.getExternalStorageDirectory().getPath() + "/";
 			String path = storagepath + parts[1];
 			if( path != null)
+			{
+				// Fresh persistent permissions. (For higher API levels of Android)
+				// Even if 'path' is wrong (because of the issue noted above), content resolver will take the permissions for correct directory. However, user must change the path(resPath) manually according to real location.
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) 
+					getContentResolver().takePersistableUriPermission(pathUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 				resPath.setText( path );
+			}
 			resPath.setEnabled(true);
 		}
 		catch(Exception e)
