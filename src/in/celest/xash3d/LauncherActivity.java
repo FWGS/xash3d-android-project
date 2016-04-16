@@ -86,20 +86,32 @@ public class LauncherActivity extends Activity {
 
 	public void selectFolder(View view)
 	{
-		Intent intent = new Intent("android.intent.action.OPEN_DOCUMENT_TREE");
+		Intent intent = new Intent("android.intent.action.OPEN_DOCUMENT_TREE"); //For api level >= 21
 		startActivityForResult(intent, 42);
 		resPath.setEnabled(false);
 	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
-		if (resultCode == RESULT_OK) {
+		if ((resultCode == RESULT_OK) && (requestCode == 42) ) {
 try{
-			final List<String> paths = resultData.getData().getPathSegments();
-			String[] parts = paths.get(1).split(":");
-			String storagepath = Environment.getExternalStorageDirectory().getPath() + "/";
-			String path = storagepath + parts[1];
-			if( path != null)
+		Uri pathUri = resultData.getData();
+		final List<String> paths = pathUri.getPathSegments();
+		String[] parts = paths.get(1).split(":");
+		// TODO: Do some workaround regarding the external storage path issue: External storage location showing as internal(emulated/0) on some devices such as Samsung.
+        // Maybe try to extract the exact location from URI instead of faking it with getExternalStorageDirectory() ?
+		String storagepath = Environment.getExternalStorageDirectory().getPath() + "/";
+		String path = storagepath + parts[1];
+		if( path != null)
+		{
+			// Fresh persistent permissions. (For higher API levels of Android)
+			// Even if 'path' is wrong (because of the issue noted above), content resolver will take the permissions for correct directory. However, user must change the path(resPath) manually according to real location.
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+			{
+				getContentResolver().takePersistableUriPermission(pathUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				getContentResolver().openFileDescriptor(pathUri, "rw");
+			}
 				resPath.setText( path );
+			}
 			resPath.setEnabled(true);
 		}
 		catch(Exception e)
