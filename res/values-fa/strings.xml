@@ -4,7 +4,7 @@
   <string name="launcher_name">Xash3D</string>
   <string name="launcher_name_test">Xash3D (آزمایشی)</string>
   <string name="launch_button">!Xash3Dاجرای</string>
-  <string name="cmd_args_text">:دستورات خط فرمان (فقط برای حرفه ای ها)</string>
+  <string name="cmd_args_text">:(دستورات خط فرمان (فقط برای حرفه ای ها</string>
   <string name="use_controls">فعال کردن کنترل های لمسی</string>
   <string name="use_volume">استفاده از دکمه های صدا</string>
   <string name="text_res_path">:مسیر منابع بازی</string>
@@ -13,7 +13,7 @@
   <string name="text_shortcut_test">Xash3D_test shortcut</string>
   <string name="shortcut_button_save">ذخیره میانبر</string>
   <string name="gamedir">مسیر مود</string>
-  <string name="pkgname">:نام بسته مود (فقط برای حرفه ای ها) </string>
+  <string name="pkgname">:(نام بسته مود (فقط برای حرفه ای ها</string>
   <string name="shortcut_name">نام میانبر</string>
   <string name="about_main">Xash3D Android</string>
   <string name="about_copyright">.یا شرکای آنها ندارد. تمامی حقوق کپی برای صاحبان هر کدام محفوظ است Valve هیچ نسبتی با SDLash3D</string>
