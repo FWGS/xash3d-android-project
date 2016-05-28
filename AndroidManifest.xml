@@ -88,6 +88,7 @@
 		<!--
 		<service android:name="in.celest.xash3d.SteamService" />
 		-->
+		<activity android:name="in.celest.xash3d.ModPicker" />
 	</application>
 
 	<!-- Some devices with Android 2.2 should support native activity, it was in unstable hidden API -->
