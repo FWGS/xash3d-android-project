@@ -54,4 +54,5 @@
 	<string name="cancel">Cancel</string>
 	<string name="no_updates">No updates was found</string>
 	<string name="checking_updates">Working...</string>
+	<string name="select_mod">Select mod</string>
 </resources>

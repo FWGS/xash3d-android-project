@@ -78,7 +78,7 @@ public class LauncherActivity extends Activity {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		//super.setTheme( 0x01030005 );
 		if ( sdk >= 21 )
-		super.setTheme( 0x01030224 );
+		    super.setTheme( 0x01030224 );
 		setContentView(R.layout.activity_launcher);
 
 		TabHost tabHost = (TabHost) findViewById(R.id.tabhost);
@@ -158,21 +158,31 @@ public class LauncherActivity extends Activity {
 
 	public void selectFolder(View view)
 	{
-		Intent intent = new Intent(this, in.celest.xash3d.FPicker.class);
+		Intent intent = new Intent(this, FPicker.class);
 		//intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		//Intent intent = new Intent("android.intent.action.OPEN_DOCUMENT_TREE");
 		startActivityForResult(intent, 42);
 		resPath.setEnabled(false);
 	}
+	
+	public void selectGameMod(View view)
+	{
+		Intent intent = new Intent(this, ModPicker.class);
+		startActivityForResult(intent, 43);
+	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent resultData) 
 	{
-		if (resultCode == RESULT_OK) 
+		switch(requestCode)
 		{
-			try	
+		case 42:
+		{
+			if (resultCode == RESULT_OK) 
 			{
-				resPath = ( EditText ) findViewById( R.id.cmdPath );
-				resPath.setText( resultData.getStringExtra("GetPath"));
+				try	
+				{
+					resPath = ( EditText ) findViewById( R.id.cmdPath );
+					resPath.setText( resultData.getStringExtra("GetPath"));
 
 //				final List<String> paths = resultData.getData().getPathSegments();
 //				String[] parts = paths.get(1).split(":");
@@ -180,14 +190,20 @@ public class LauncherActivity extends Activity {
 //				String path = storagepath + parts[1];
 //				if( path != null)
 //					resPath.setText( path );
-				resPath.setEnabled(true);
+					resPath.setEnabled(true);
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+				}
 			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+			resPath.setEnabled(true);
+			break;
 		}
-		resPath.setEnabled(true);
+		case 43:
+			
+			break;
+		}
 	}
 
 	public void createShortcut(View view)
