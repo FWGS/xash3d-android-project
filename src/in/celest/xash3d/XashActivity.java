@@ -385,6 +385,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  8,
 				EGL10.EGL_BLUE_SIZE,   8,
 				EGL10.EGL_ALPHA_SIZE, 8,
+				EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}, {
 				EGL10.EGL_DEPTH_SIZE,   8,
@@ -392,6 +393,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  8,
 				EGL10.EGL_BLUE_SIZE,   8,
 				EGL10.EGL_ALPHA_SIZE, 0,
+	EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}, {
 				EGL10.EGL_DEPTH_SIZE,   8,
@@ -399,6 +401,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  6,
 				EGL10.EGL_BLUE_SIZE,   5,
 				EGL10.EGL_ALPHA_SIZE, 0,
+	EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}, {
 				EGL10.EGL_DEPTH_SIZE,   8,
@@ -406,7 +409,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  5,
 				EGL10.EGL_BLUE_SIZE,   5,
 				EGL10.EGL_ALPHA_SIZE, 1,
-
+EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}, {
 				EGL10.EGL_DEPTH_SIZE,   8,
@@ -414,7 +417,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  4,
 				EGL10.EGL_BLUE_SIZE,   4,
 				EGL10.EGL_ALPHA_SIZE,   4,
-
+EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}, {
 				EGL10.EGL_DEPTH_SIZE,   8,
@@ -422,7 +425,7 @@ View.OnKeyListener {
 				EGL10.EGL_GREEN_SIZE,  3,
 				EGL10.EGL_BLUE_SIZE,   2,
 				EGL10.EGL_ALPHA_SIZE,   0,
-
+EGL10.EGL_RENDERABLE_TYPE, 4,
 				EGL10.EGL_NONE
 			}};
 			EGLConfig[] configs = new EGLConfig[1];
@@ -437,7 +440,7 @@ View.OnKeyListener {
 			int EGL_CONTEXT_CLIENT_VERSION=0x3098;
 			int contextAttrs[] = new int[]
 			{
-				EGL_CONTEXT_CLIENT_VERSION, 1,
+				EGL_CONTEXT_CLIENT_VERSION, 2,
 				EGL10.EGL_NONE
 			};
 			EGLContext ctx = egl.eglCreateContext(dpy, config, EGL10.EGL_NO_CONTEXT, contextAttrs);
