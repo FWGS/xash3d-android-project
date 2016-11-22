@@ -7,12 +7,14 @@ import android.app.AlertDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Build;
+import android.text.method.LinkMovementMethod;
 import android.os.Environment;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 
 import android.content.Intent;
 import android.content.ComponentName;
@@ -23,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Button;
@@ -51,17 +54,22 @@ import java.net.URL;
 import org.json.*;
 
 import in.celest.xash3d.hl.R;
+import in.celest.xash3d.XashActivity;
 
 public class LauncherActivity extends Activity {
    // public final static String ARGV = "in.celest.xash3d.MESSAGE";
    	public final static int sdk = Integer.valueOf(Build.VERSION.SDK);
-	public final static String UPDATE_LINK = "https://api.github.com/repos/SDLash3D/xash3d-android-project/releases/latest";
+	public final static String UPDATE_LINK = "https://api.github.com/repos/FWGS/xash3d-android-project/releases"; // releases/latest doesn't return prerelease and drafts
 	static EditText cmdArgs;
-	static ToggleButton useVolume;
-	static CheckBox	checkUpdates;
 	static EditText resPath;
+	static ToggleButton useVolume;
+	static ToggleButton resizeWorkaround;
+	static CheckBox	checkUpdates;
+	static CheckBox updateToBeta;
+	static CheckBox immersiveMode;
 	static SharedPreferences mPref;
 	static Spinner pixelSpinner;
+	static TextView tvResPath;
 	
 	String getDefaultPath()
 	{
@@ -78,7 +86,15 @@ public class LauncherActivity extends Activity {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		//super.setTheme( 0x01030005 );
 		if ( sdk >= 21 )
-		    super.setTheme( 0x01030224 );
+			super.setTheme( 0x01030224 );
+		else super.setTheme( 0x01030005 );
+		
+		if( XashActivity.dumbAntiPDALifeCheck( this ) )
+		{
+			finish();
+			return;
+		}
+		
 		setContentView(R.layout.activity_launcher);
 
 		TabHost tabHost = (TabHost) findViewById(R.id.tabhost);
@@ -95,37 +111,93 @@ public class LauncherActivity extends Activity {
 		tabSpec.setContent(R.id.tab2);
 		tabHost.addTab(tabSpec);
 
-		mPref		 = getSharedPreferences("engine", 0);
-		cmdArgs		 = (EditText)findViewById(R.id.cmdArgs);
-		useVolume	 = ( ToggleButton ) findViewById( R.id.useVolume );
-		resPath		 = ( EditText ) findViewById( R.id.cmdPath );
-		checkUpdates = (CheckBox)findViewById(R.id.check_updates);
-		pixelSpinner = (Spinner) findViewById(R.id.pixelSpinner);
-
+		mPref        = getSharedPreferences("engine", 0);
+		cmdArgs      = (EditText) findViewById(R.id.cmdArgs);
+		useVolume    = (ToggleButton) findViewById( R.id.useVolume );
+		resPath      = (EditText) findViewById( R.id.cmdPath );
+		checkUpdates = (CheckBox)findViewById( R.id.check_updates );
+		updateToBeta = (CheckBox)findViewById( R.id.check_betas );
+		pixelSpinner = (Spinner) findViewById( R.id.pixelSpinner );
+		resizeWorkaround = (ToggleButton) findViewById( R.id.enableResizeWorkaround );
+		tvResPath    = (TextView) findViewById( R.id.textView_path );
+		immersiveMode = (CheckBox) findViewById( R.id.immersive_mode );
+		
 		final String[] list = {
-			"RGBA8888",
-			"RGBA888",
-			"RGB565",
-			"RGBA5551",
-			"RGBA4444",
-			"RGB332"
+			"32 bit (RGBA8888)",
+			"24 bit (RGB888)",
+			"16 bit (RGB565)",
+			"16 bit (RGBA5551)",
+			"16 bit (RGBA4444)",
+			"8 bit (RGB332)"
 		};
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, list);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
 		pixelSpinner.setAdapter(adapter);
+		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
+	selectFolderButton.setOnClickListener(new View.OnClickListener(){
+	       @Override
+	    public void onClick(View v) {
+	    selectFolder(v);
+		}
+	});
+	((Button)findViewById( R.id.button_launch )).setOnClickListener(new View.OnClickListener(){
+	       @Override
+	    public void onClick(View v) {
+	    startXash(v);
+		}
+	});
+	((Button)findViewById( R.id.button_shortcut )).setOnClickListener(new View.OnClickListener(){
+	       @Override
+	    public void onClick(View v) {
+	    createShortcut(v);
+		}
+	});
+	((Button)findViewById( R.id.button_about )).setOnClickListener(new View.OnClickListener(){
+	       @Override
+	    public void onClick(View v) {
+	    aboutXash(v);
+		}
+	});
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
-		resPath.setText(mPref.getString("basedir", getDefaultPath()));
+		updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
+		updatePath(mPref.getString("basedir", getDefaultPath()));
 		cmdArgs.setText(mPref.getString("argv","-dev 3 -log"));
 		pixelSpinner.setSelection(mPref.getInt("pixelformat", 0));
-
-		if(mPref.getBoolean("check_updates", true))
+		resizeWorkaround.setChecked(mPref.getBoolean("enableResizeWorkaround", true));
+		
+		if( sdk >= 19 )
 		{
-			new CheckUpdate(true).execute(UPDATE_LINK);
+			immersiveMode.setChecked(mPref.getBoolean("immersive_mode", true));
+		}
+		else
+		{
+			immersiveMode.setVisibility(View.GONE); // not available
+		}
+				
+		resPath.setOnFocusChangeListener( new View.OnFocusChangeListener()
+		{
+			@Override
+			public void onFocusChange(View v, boolean hasFocus)
+			{
+				updatePath( resPath.getText().toString() );
+			}
+		} );
+
+		if( !XashConfig.GP_VERSION && // disable autoupdater for Google Play
+			mPref.getBoolean("check_updates", true))
+		{
+			new CheckUpdate(true, updateToBeta.isChecked()).execute(UPDATE_LINK);
 		}
 
 	}
 
+	void updatePath( String text )
+	{
+		tvResPath.setText(getResources().getString(R.string.text_res_path) + ":\n" + text );
+		resPath.setText(text);
+	
+	}
     public void startXash(View view)
     {
 		Intent intent = new Intent(this, XashActivity.class);
@@ -136,7 +208,12 @@ public class LauncherActivity extends Activity {
 		editor.putBoolean("usevolume",useVolume.isChecked());
 		editor.putString("basedir", resPath.getText().toString());
 		editor.putInt("pixelformat", pixelSpinner.getSelectedItemPosition());
+		editor.putBoolean("enableResizeWorkaround",resizeWorkaround.isChecked());
 		editor.putBoolean("check_updates", checkUpdates.isChecked());
+		if( sdk >= 19 )
+			editor.putBoolean("immersive_mode", immersiveMode.isChecked());
+		else
+			editor.putBoolean("immersive_mode", false); // just in case...
 		editor.commit();
 		startActivity(intent);
     }
@@ -152,6 +229,8 @@ public class LauncherActivity extends Activity {
 				dialog.setContentView(R.layout.about);
 				dialog.setCancelable(true);
 				dialog.show();
+				TextView tView6 = (TextView) dialog.findViewById(R.id.textView6);
+				tView6.setMovementMethod(LinkMovementMethod.getInstance());
 			}
 		});
 	}
@@ -179,23 +258,14 @@ public class LauncherActivity extends Activity {
 		{
 			if (resultCode == RESULT_OK) 
 			{
-				try	
-				{
-					resPath = ( EditText ) findViewById( R.id.cmdPath );
-					resPath.setText( resultData.getStringExtra("GetPath"));
-
-//				final List<String> paths = resultData.getData().getPathSegments();
-//				String[] parts = paths.get(1).split(":");
-//				String storagepath = Environment.getExternalStorageDirectory().getPath() + "/";
-//				String path = storagepath + parts[1];
-//				if( path != null)
-//					resPath.setText( path );
-					resPath.setEnabled(true);
-				}
-				catch(Exception e)
-				{
-					e.printStackTrace();
-				}
+				if( resPath == null )
+					return;
+				updatePath(resultData.getStringExtra("GetPath"));
+				resPath.setEnabled(true);
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
 			}
 			resPath.setEnabled(true);
 			break;
@@ -241,13 +311,16 @@ public class LauncherActivity extends Activity {
 		InputStream is = null;
 		ByteArrayOutputStream os = null;
 		boolean mSilent;
+		boolean mBeta;
 
-		public CheckUpdate( boolean silent )
+		public CheckUpdate( boolean silent, boolean beta )
 		{
 			mSilent = silent;
+			mBeta = beta;
 		}
 
-		protected String doInBackground(String... urls) {
+		protected String doInBackground(String... urls) 
+		{
 			try
 			{
 				URL url = new URL(urls[0]);
@@ -261,6 +334,8 @@ public class LauncherActivity extends Activity {
 				{
 					os.write(buffer, 0, len);
 				}
+				os.flush();
+				
 				return os.toString();
 			}
 			catch(Exception e)
@@ -272,6 +347,7 @@ public class LauncherActivity extends Activity {
 
 		protected void onPostExecute(String result)
 		{
+			JSONArray releases = null;
 			try
 			{
 				if (is != null)
@@ -284,12 +360,12 @@ public class LauncherActivity extends Activity {
 			{
 				e.printStackTrace();
 			}
-			JSONObject obj = new JSONObject(os.toString());
 
 			try
 			{
 				if (os != null) 
 				{
+					releases = new JSONArray(os.toString());
 					os.close();
 					os = null;
 				}
@@ -297,36 +373,62 @@ public class LauncherActivity extends Activity {
 			catch(Exception e)
 			{
 				e.printStackTrace();
+				return;
 			}
-			final String version = obj.getString("tag_name");
-			final String url 	 = obj.getString("html_url");
-			final String name	 = obj.getString("name");
-
-			Log.d("Xash", "Found: " + version +
-				", I: " + getString(R.string.version_string));
-
-			// this is an update
-			if( getString(R.string.version_string).compareTo(version) < 0 )
+			
+			if( releases == null )
+				return;
+			
+			for( int i = 0; i < releases.length(); i++ )
 			{
-				String dialog_message = String.format(getString(R.string.update_message), name);
-				AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
-				builder.setMessage(dialog_message)
-					.setPositiveButton(R.string.update, new DialogInterface.OnClickListener()
+				final JSONObject obj;
+				try 
+				{
+					obj = releases.getJSONObject(i);
+
+					final String version, url, name;
+					final boolean beta = obj.getBoolean("prerelease");
+
+					if( beta && !mBeta )
+						continue;
+
+					version = obj.getString("tag_name");
+					url = obj.getString("html_url");
+					name = obj.getString("name");
+					Log.d("Xash", "Found: " + version +
+						", I: " + getString(R.string.version_string));
+
+					// this is an update
+					if( getString(R.string.version_string).compareTo(version) < 0 )
 					{
-						public void onClick(DialogInterface dialog, int id) {
-							final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
-							startActivity(intent);
-						}
-					})
-					.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
+						String dialog_message = String.format(getString(R.string.update_message), name);
+						AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
+						builder.setMessage(dialog_message)
+							.setPositiveButton(R.string.update, new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int id)
+								{
+									final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+									startActivity(intent);
+								}
+							})
+							.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
+								{ public void onClick(DialogInterface dialog, int id) {} } );
+						builder.create().show();
+					}
+					else if( !mSilent )
 					{
-						public void onClick(DialogInterface dialog, int which){}
-					});
-				builder.create().show();
-			}
-			else if( !mSilent )
-			{
-				Toast.makeText(getBaseContext(), R.string.no_updates, Toast.LENGTH_SHORT).show();
+						Toast.makeText(getBaseContext(), R.string.no_updates, Toast.LENGTH_SHORT).show();
+					}
+
+					// No need to check other releases, so we will stop here.
+					break;
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+					continue;
+				}
 			}
 		}
 	}

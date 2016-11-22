@@ -3,7 +3,7 @@
     <string name="app_name" translatable="false">Xash3D</string>
 	<string name="launcher_name" translatable="false">Xash3D</string>
 	<string name="launcher_name_test" translatable="false">Xash3D (test)</string>
-	<string name="version_string" translatable="false">v0.17.1</string>
+	<string name="version_string" translatable="false">v0.18</string>
 
     <string name="launch_button">Launch Xash3D!</string>
     <string name="cmd_args_text">Command line arguments(experts only)</string>
@@ -17,10 +17,10 @@
 	<string name="shortcut_name">Shortcut name</string>
 
     <string name="about_main" translatable="false">Xash3D Android</string>
-    <string name="about_copyright">SDLash3D is not affiliated with Valve or any of their partners. All copyrights reserved to their respective owners.</string>
+    <string name="about_copyright">FWGS is not affiliated with Valve or any of their partners. All copyrights reserved to their respective owners.</string>
 	<!-- Seems Android skips any line breaks and tabs here. -->
     <string name="about_authors">
-		Port to Android by SDLash3D team: \n
+		Port to Android by FWGS team: \n
 		&#8226; a1batross\n
 		&#8226; mittorn \n
 		&#8226; nicknekit.\n
@@ -28,13 +28,12 @@
 		Special thanks to:\n
 		&#8226; Uncle Mike for Xash3D engine\n
 		&#8226; Valve for Half-Life\n
-		&#8226; libSDL2 developers.\n
 	</string>
 	<string name="about_links">
 		Follow us in: \n
 		&#8226; <a href="https://vk.com/xashdroid">VK</a>\n
 		&#8226; <a href="http://moddb.com/game/xash3d-android">ModDB</a>\n
-		&#8226; <a href="https://github.com/SDLash3D">GitHub</a>
+		&#8226; <a href="https://github.com/FWGS">GitHub</a>
 	</string>
     <string name="about_button">About</string>
     <string name="create_shortcut_button">Create mod shortcut</string>
@@ -44,15 +43,18 @@
     <string name="text_tab2">Advanced</string>
     <string name="text_res_tittle2">Normal settings</string>
     <string name="text_res_tittle3">Advanced settings</string>
-    <string name="use_volume">Gamepad support off!</string>
-    <string name="no_volume">Gamepad support active!</string>
+    <string name="volume">Volume buttons mode</string>
+    <string name="use_volume">Default action</string>
+    <string name="no_volume">Use in game</string>
     <string name="folder">Set current folder</string>
 	
 	<string name="update_button">Check updates on start</string>
+	<string name="update_to_beta">Update to unstable version if available</string>
 	<string name="update_message">%s is available! Download it now!</string>
 	<string name="update">Update</string>
 	<string name="cancel">Cancel</string>
 	<string name="no_updates">No updates was found</string>
 	<string name="checking_updates">Working...</string>
 	<string name="select_mod">Select mod</string>
+	<string name="immersive_mode">Enable Immersive Mode(fullscreen, KitKat or higher)</string>
 </resources>

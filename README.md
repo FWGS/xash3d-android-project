@@ -1,7 +1,7 @@
 ====
 Xash3D Android
 ====
-[![Build Status](https://travis-ci.org/SDLash3D/xash3d-android-project.svg)](https://travis-ci.org/SDLash3D/xash3d-android-project)
+[![Build Status](https://travis-ci.org/FWGS/xash3d-android-project.svg)](https://travis-ci.org/FWGS/xash3d-android-project)
 ### Users
 #### Installation guide
 0. Download the APK and extras.7z from Github Releases. https://github.com/SDLash3D/xash3d-android-project/releases/latest
@@ -27,4 +27,4 @@ About all bugs please write to issues with your device and OS info.
 ### Developers
 
 + For compiling, run `git submodule init && git submodule update`. Otherwise you will get an empty APK, without any libraries. 
-+ We use our SDL2 fork. See https://github.com/mittorn/SDL-mirror
++ ~~We use our SDL2 fork. See https://github.com/mittorn/SDL-mirror~~. Nevermind. We don't use SDL2 anymore.

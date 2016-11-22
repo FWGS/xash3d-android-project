@@ -10,7 +10,7 @@ import android.app.*;
 import android.content.*;
 import android.view.*;
 import android.os.*;
-import android.util.Log;
+import android.util.*;
 import android.graphics.*;
 import android.text.method.*;
 import android.text.*;
@@ -18,42 +18,123 @@ import android.media.*;
 import android.hardware.*;
 import android.content.*;
 import android.widget.*;
+import android.content.pm.*;
 
 import android.view.inputmethod.*;
 
 import java.lang.*;
+import java.util.List;
+import java.security.MessageDigest;
+
+import in.celest.xash3d.hl.BuildConfig;
+import in.celest.xash3d.XashConfig;
 
 /**
- SDL Activity
+ Xash Activity
  */
 public class XashActivity extends Activity {
 
 	// Main components
 	protected static XashActivity mSingleton;
 	protected static View mTextEdit;
-	private static EngineSurface mSurface;
+	public static EngineSurface mSurface;
 	public static String mArgv[];
 	public static final int sdk = Integer.valueOf(Build.VERSION.SDK);
 	public static final String TAG = "XASH3D:XashActivity";
 	public static int mPixelFormat;
 	protected static ViewGroup mLayout;
+	public static JoystickHandler handler;
+	public static ImmersiveMode mImmersiveMode;
+	public static boolean keyboardVisible = false;
 
-		// Preferences
+	// Joystick constants
+	public final static byte JOY_HAT_CENTERED = 0; // bitmasks for hat current status
+	public final static byte JOY_HAT_UP       = 1;
+	public final static byte JOY_HAT_RIGHT    = 2;
+	public final static byte JOY_HAT_DOWN     = 4;
+	public final static byte JOY_HAT_LEFT     = 8;
+
+	public final static byte JOY_AXIS_SIDE  = 0; // this represents default
+	public final static byte JOY_AXIS_FWD   = 1; // engine binding: SFPYRL
+	public final static byte JOY_AXIS_PITCH = 2;
+	public final static byte JOY_AXIS_YAW   = 3;
+	public final static byte JOY_AXIS_RT    = 4;
+	public final static byte JOY_AXIS_LT    = 5;
+
+	// Preferences
 	public static SharedPreferences mPref = null;
+	private static boolean mUseVolume;
+	private static boolean mEnableImmersive;
+	public static View mDecorView;
 
 	// Audio
 	private static Thread mAudioThread;
 	private static AudioTrack mAudioTrack;
+	
+	// Certificate checking
+	private static String SIG = "DMsE8f5hlR7211D8uehbFpbA0n8=";
+	private static String SIG_TEST = ""; // a1ba: mittorn, add your signature later
+
 	// Load the .so
 	static {
 		System.loadLibrary("xash");
 	}
 
+	// Shared between this activity and LauncherActivity
+	public static boolean dumbAntiPDALifeCheck( Context context )
+	{
+		if( BuildConfig.DEBUG || 
+			!XashConfig.CHECK_SIGNATURES )
+			return false; // disable checking for debug builds
+	
+		try
+		{
+			PackageInfo info = context.getPackageManager()
+				.getPackageInfo( context.getPackageName(), PackageManager.GET_SIGNATURES );
+			
+			for( Signature signature: info.signatures )
+			{
+				MessageDigest md = MessageDigest.getInstance( "SHA" );
+				final byte[] signatureBytes = signature.toByteArray();
+
+				md.update( signatureBytes );
+
+				final String curSIG = Base64.encodeToString( md.digest(), Base64.NO_WRAP );
+
+				if( XashConfig.PKG_TEST )
+				{
+					if( SIG_TEST.equals(curSIG) )
+						return false;
+				}
+				else
+				{
+					if( SIG.equals(curSIG) )
+						return false;
+				}
+			}
+		} 
+		catch( Exception e ) 
+		{
+			e.printStackTrace();
+		}
+		
+		Log.e(TAG, "Please, don't resign our public release builds!");
+		Log.e(TAG, "If you want to insert some features, rebuild package with ANOTHER package name from git repository.");
+		return true;
+	}
+	
 	// Setup
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v(TAG, "onCreate()");
 		super.onCreate(savedInstanceState);
-
+		
+		if( dumbAntiPDALifeCheck(this) )
+		{
+			finish();
+			return;
+		}
+		
 		// So we can call stuff from static callbacks
 		mSingleton = this;
 		Intent intent = getIntent();
@@ -72,6 +153,13 @@ public class XashActivity extends Activity {
 
 		// Set up the surface
 		mSurface = new EngineSurface(getApplication());
+
+		if( sdk < 12 )
+			handler = new JoystickHandler();
+		else
+			handler = new JoystickHandler_v12();
+		handler.init();
+
 		mLayout = new FrameLayout(this);
 		mLayout.addView(mSurface);
 		setContentView(mLayout);
@@ -125,19 +213,38 @@ public class XashActivity extends Activity {
 		InstallReceiver.extractPAK(this, false);
 
 		mPixelFormat = mPref.getInt("pixelformat", 0);
-		AndroidBug5497Workaround.assistActivity(this);
+		mUseVolume = mPref.getBoolean("usevolume", false);
+		if( mPref.getBoolean("enableResizeWorkaround", true) )
+			AndroidBug5497Workaround.assistActivity(this);
+		
+		// Immersive Mode is available only at >KitKat
+		mEnableImmersive = (sdk >= 19 && mPref.getBoolean("immersive_mode", true));
+		if( mEnableImmersive )
+			mImmersiveMode = new ImmersiveMode_v19();
+		mDecorView = getWindow().getDecorView();
 	}
 
 	// Events
+	@Override
 	protected void onPause() {
 		Log.v(TAG, "onPause()");
 		super.onPause();
 	}
 
+	@Override
 	protected void onResume() {
 		Log.v(TAG, "onResume()");
 		super.onResume();
 	}
+	
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) 
+	{
+		super.onWindowFocusChanged(hasFocus);
+
+		if( mImmersiveMode != null )
+			mImmersiveMode.apply();
+	}	
 
 	public static native int nativeInit(Object arguments);
 	public static native void nativeQuit();
@@ -147,8 +254,16 @@ public class XashActivity extends Activity {
 	public static native void nativeString( String text );
 	public static native void nativeSetPause(int pause);
 
+	public static native void nativeHat(int id, byte hat, byte keycode, boolean down);
+	public static native void nativeAxis(int id, byte axis, short value);
+	public static native void nativeJoyButton(int id, byte button, boolean down);
+	
+	// for future expansion
+	public static native void nativeBall(int id, byte ball, short xrel, short yrel);
+	public static native void nativeJoyAdd( int id );
+	public static native void nativeJoyDel( int id );
+	
 	public static native int setenv(String key, String value, boolean overwrite);
-
 
 	// Java functions called from C
 
@@ -170,6 +285,11 @@ public class XashActivity extends Activity {
 
 	public static void toggleEGL(int toggle) {
 		mSurface.toggleEGL(toggle);
+	}
+	
+	public static boolean deleteGLContext() {
+		mSurface.ShutdownGL();
+		return true;
 	}
 
 	public static Context getContext() {
@@ -210,24 +330,160 @@ public class XashActivity extends Activity {
 
 	public static boolean handleKey( int keyCode, KeyEvent event )
 	{
+		if ( mUseVolume && ( keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
+			keyCode == KeyEvent.KEYCODE_VOLUME_UP ) )
+			return false;
+			
+		final int source = XashActivity.handler.getSource(event);
+		final int action = event.getAction();
+		final boolean isGamePad  = (source & InputDevice.SOURCE_GAMEPAD)        == InputDevice.SOURCE_GAMEPAD;
+		final boolean isJoystick = (source & InputDevice.SOURCE_CLASS_JOYSTICK) == InputDevice.SOURCE_CLASS_JOYSTICK;
+		final boolean isDPad     = (source & InputDevice.SOURCE_DPAD)           == InputDevice.SOURCE_DPAD;
 
-		//Log.d( TAG, "Keycode " + keyCode );
-		if (event.getAction() == KeyEvent.ACTION_DOWN)
+		if( isDPad )
 		{
-			if (event.isPrintingKey() || keyCode == 62)// space is printing too
-				XashActivity.nativeString(String.valueOf((char) event.getUnicodeChar()));
+			byte val;
+			final byte hat = 0;
+			final int id = 0;
+			Log.d(TAG, "DPAD button: " + keyCode );
+			switch( keyCode )
+			{
+			case KeyEvent.KEYCODE_DPAD_CENTER: val = JOY_HAT_CENTERED; break;
+			case KeyEvent.KEYCODE_DPAD_UP:     val = JOY_HAT_UP;       break;
+			case KeyEvent.KEYCODE_DPAD_RIGHT:  val = JOY_HAT_RIGHT;    break;
+			case KeyEvent.KEYCODE_DPAD_DOWN:   val = JOY_HAT_DOWN;     break;
+			case KeyEvent.KEYCODE_DPAD_LEFT:   val = JOY_HAT_LEFT;     break;
+			default: return performEngineKeyEvent( action, keyCode, event );
+			}
 
-			XashActivity.nativeKey(1,keyCode);
+			if(action == KeyEvent.ACTION_DOWN)
+				nativeHat(id, hat, val, true);
+			else if(action == KeyEvent.ACTION_UP)
+				nativeHat(id, hat, val, false);
 
 			return true;
 		}
-		else if (event.getAction() == KeyEvent.ACTION_UP)
-		{
 
-			XashActivity.nativeKey(0,keyCode);
+		// Engine will bind these to AUX${val} virtual keys
+		// Android may send event without source flags set to GAMEPAD or CLASS_JOYSTICK
+		// so check for gamepad buttons anyway
+		if( isGamePad || isJoystick || XashActivity.handler.isGamepadButton( keyCode ) )
+		{
+			final int id = 0;
+			byte val = 15;
+			
+			switch( keyCode )
+			{
+			// main buttons. DONT CHANGE THIS!!!!111oneone
+			case KeyEvent.KEYCODE_BUTTON_A:      val = 0; break;
+			case KeyEvent.KEYCODE_BUTTON_B:	     val = 1; break;
+			case KeyEvent.KEYCODE_BUTTON_X:	     val = 2; break;
+			case KeyEvent.KEYCODE_BUTTON_Y:	     val = 3; break;
+			case KeyEvent.KEYCODE_BUTTON_L1:     val = 4; break;
+			case KeyEvent.KEYCODE_BUTTON_R1:     val = 5; break;
+			case KeyEvent.KEYCODE_BUTTON_SELECT: val = 6; break;
+			case KeyEvent.KEYCODE_BUTTON_MODE:   val = 7; break;
+			case KeyEvent.KEYCODE_BUTTON_START:  val = 8; break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBL: val = 9; break;
+			case KeyEvent.KEYCODE_BUTTON_THUMBR: val = 10; break;
+			
+			// other
+			case KeyEvent.KEYCODE_BUTTON_C:  val = 11; break;
+			case KeyEvent.KEYCODE_BUTTON_Z:  val = 12; break;
+			case KeyEvent.KEYCODE_BUTTON_L2: val = 13; break;
+			case KeyEvent.KEYCODE_BUTTON_R2: val = 14; break;
+			default: 
+				if( keyCode >= KeyEvent.KEYCODE_BUTTON_1 && keyCode <= KeyEvent.KEYCODE_BUTTON_16 )
+				{
+					val = (byte)((keyCode - KeyEvent.KEYCODE_BUTTON_1) + 15);
+				}
+				else if( XashActivity.handler.isGamepadButton(keyCode) )
+				{
+					// maybe never reached, as all possible gamepad buttons are checked before
+					Log.d(TAG, "Unhandled GamePad button: " + XashActivity.handler.keyCodeToString(keyCode) );
+					return false;
+				}
+				else
+				{
+					// must be never reached too
+					return performEngineKeyEvent( action, keyCode, event );
+				}
+			}
+
+			if( event.getAction() == KeyEvent.ACTION_DOWN )
+			{
+				nativeJoyButton( id, val, true );
+				return true;
+			}
+			else if( event.getAction() == KeyEvent.ACTION_UP )
+			{
+				nativeJoyButton( id, val, false );
+				return true;
+			}
+			return false;
+		}
+
+		return performEngineKeyEvent( action, keyCode, event );
+	}
+
+	public static boolean performEngineKeyEvent( int action, int keyCode, KeyEvent event)
+	{
+		if( action == KeyEvent.ACTION_DOWN )
+		{
+			if( event.isPrintingKey() || keyCode == 62 )// space is printing too
+				XashActivity.nativeString( String.valueOf( (char) event.getUnicodeChar() ) );
+
+			XashActivity.nativeKey( 1, keyCode );
+
+			return true;
+		}
+		else if( action == KeyEvent.ACTION_UP )
+		{
+			XashActivity.nativeKey( 0, keyCode );
 			return true;
 		}
 		return false;
+	}
+	
+	public static float performEngineAxisEvent( float current, byte engineAxis, float prev, float flat )
+	{
+		if( prev != current )
+		{
+			final int id = 0;
+			final short SHRT_MAX = 32767;
+			if( current <= flat && current >= -flat )
+				current = 0;
+			
+			nativeAxis( id, engineAxis, (short)(current * SHRT_MAX) );
+		}
+		
+		return current;
+	}
+	
+	public static float performEngineHatEvent( float curr, boolean isXAxis, float prev )
+	{
+		if( prev != curr )
+		{
+			final int id = 0;
+			final byte hat = 0;
+			if( isXAxis )
+			{
+				     if( curr > 0 ) nativeHat( id, hat, JOY_HAT_RIGHT, true );
+				else if( curr < 0 ) nativeHat( id, hat, JOY_HAT_LEFT,  true );
+				// unpress previous if curr centered
+				else if( prev > 0 ) nativeHat( id, hat, JOY_HAT_RIGHT, false );
+				else if( prev < 0 ) nativeHat( id, hat, JOY_HAT_LEFT,  false );
+			}
+			else
+			{
+				     if( curr > 0 ) nativeHat( id, hat, JOY_HAT_DOWN, true );
+				else if( curr < 0 ) nativeHat( id, hat, JOY_HAT_UP,   true );
+				// unpress previous if curr centered
+				else if( prev > 0 ) nativeHat( id, hat, JOY_HAT_DOWN, false );
+				else if( prev < 0 ) nativeHat( id, hat, JOY_HAT_UP,   false );
+			}
+		}
+		return curr;
 	}
 
 	static class ShowTextInputTask implements Runnable
@@ -259,17 +515,23 @@ public class XashActivity extends Activity {
 				mTextEdit.requestFocus();
 
 				imm.showSoftInput(mTextEdit, 0);
+				keyboardVisible = true;
+				if( XashActivity.mImmersiveMode != null )
+					XashActivity.mImmersiveMode.apply();
 			}
 			else
 			{
 				mTextEdit.setVisibility(View.GONE);
 				imm.hideSoftInputFromWindow(mTextEdit.getWindowToken(), 0);
+				keyboardVisible = false;
+				if( XashActivity.mImmersiveMode != null )
+					XashActivity.mImmersiveMode.apply();
 			}
 		}
 	}
 
 	/**
-	 * This method is called by SDL using JNI.
+	 * This method is called by engine using JNI.
 	 */
 	public static void showKeyboard( int show )
 	{
@@ -290,16 +552,16 @@ class XashMain implements Runnable {
 }
 
 /**
- SDLSurface. This is what we draw on, so we need to know when it's created
+ EngineSurface. This is what we draw on, so we need to know when it's created
  in order to do anything useful.
 
- Because of this, that's where we set up the SDL thread
+ Because of this, that's where we set up the Xash3D thread
  */
 class EngineSurface extends SurfaceView implements SurfaceHolder.Callback,
 View.OnKeyListener {
 
-	// This is what SDL runs in. It invokes SDL_main(), eventually
-	private Thread mEngThread;
+	// This is what Xash3D runs in. It invokes main(), eventually
+	private static Thread mEngThread = null;
 
 	// EGL private objects
 	private EGLContext  mEGLContext;
@@ -369,7 +631,6 @@ View.OnKeyListener {
 
 	// EGL functions
 	public boolean InitGL() {
-
 		try
 		{
 			EGL10 egl = (EGL10)EGLContext.getEGL();
@@ -494,13 +755,25 @@ View.OnKeyListener {
 			mEGLSurface = null;
 	   }
 	}
+	public void ShutdownGL()
+	{
+		mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
+		mEGLContext = null;
+		
+		mEGL.eglDestroySurface(mEGLDisplay, mEGLSurface);
+		mEGLSurface = null;
+		
+		mEGL.eglTerminate(mEGLDisplay);
+		mEGLDisplay = null;
+	}
 
 
 	@Override
-	public boolean onKey(View v, int keyCode, KeyEvent event) {
-
+	public boolean onKey(View v, int keyCode, KeyEvent event) 
+	{
 		return XashActivity.handleKey( keyCode, event );
 	}
+
 }
 
 /* This is a fake invisible editor view that receives the input and defines the
@@ -557,6 +830,11 @@ class XashInputConnection extends BaseInputConnection {
 	public boolean commitText(CharSequence text, int newCursorPosition) {
 
 		//nativeCommitText(text.toString(), newCursorPosition);
+		if(text.toString().equals("\n"))
+		{
+			XashActivity.nativeKey(KeyEvent.KEYCODE_ENTER,1);
+			XashActivity.nativeKey(KeyEvent.KEYCODE_ENTER,0);
+		}
 		XashActivity.nativeString(text.toString());
 
 		return super.commitText(text, newCursorPosition);
@@ -684,10 +962,14 @@ class AndroidBug5497Workaround {
 			if (heightDifference > (usableHeightSansKeyboard/4)) {
 				// keyboard probably just became visible
 				frameLayoutParams.height = usableHeightSansKeyboard - heightDifference;
+				XashActivity.keyboardVisible = true;
 			} else {
 				// keyboard probably just became hidden
 				frameLayoutParams.height = usableHeightSansKeyboard;
+				XashActivity.keyboardVisible = false;
 			}
+			if( XashActivity.mImmersiveMode != null )
+				XashActivity.mImmersiveMode.apply();
 			mChildOfContent.requestLayout();
 			usableHeightPrevious = usableHeightNow;
 		}
@@ -699,4 +981,144 @@ class AndroidBug5497Workaround {
 		return (r.bottom - r.top);
 	}
 
+}
+
+/*interface JoystickHandler
+{
+	public int getSource(KeyEvent event);
+	public int getSource(MotionEvent event);
+	public boolean handleAxis(MotionEvent event);
+	public boolean isGamepadButton(int keyCode);
+	public String keyCodeToString(int keyCode);
+	public void init();
+}*/
+class JoystickHandler
+{
+	public int getSource(KeyEvent event)
+	{
+		return InputDevice.SOURCE_UNKNOWN;
+	}
+	public int getSource(MotionEvent event)
+	{
+		return InputDevice.SOURCE_UNKNOWN;
+	}
+	public boolean handleAxis(MotionEvent event)
+	{
+		return false;
+	}
+	public boolean isGamepadButton(int keyCode)
+	{
+		return false;
+	}
+	public String keyCodeToString(int keyCode)
+	{
+		return String.valueOf(keyCode);
+	}
+	public void init()
+	{
+	}
+}
+
+class JoystickHandler_v12 extends JoystickHandler
+{
+
+
+	private static float prevSide, prevFwd, prevYaw, prevPtch, prevLT, prevRT, prevHX, prevHY;
+
+	public int getSource(KeyEvent event)
+	{
+		return event.getSource();
+	}
+	public int getSource(MotionEvent event)
+	{
+		return event.getSource();
+	}
+	public boolean handleAxis( MotionEvent event )
+	{
+		// maybe I need to cache this...
+		for( InputDevice.MotionRange range: event.getDevice().getMotionRanges() )
+		{
+			// normalize in -1.0..1.0 (copied from SDL2)
+			final float cur = ( event.getAxisValue( range.getAxis(), event.getActionIndex() ) - range.getMin() ) / range.getRange() * 2.0f - 1.0f;
+			final float dead = range.getFlat(); // get axis dead zone
+			switch( range.getAxis() )
+			{
+			// typical axes
+			// move
+			case MotionEvent.AXIS_X:   prevSide = XashActivity.performEngineAxisEvent(cur, XashActivity.JOY_AXIS_SIDE,  prevSide, dead); break;
+			case MotionEvent.AXIS_Y:   prevFwd  = XashActivity.performEngineAxisEvent(cur, XashActivity.JOY_AXIS_FWD,   prevFwd,  dead); break;
+			
+			// rotate. Invert, so by default this works as it's should
+			case MotionEvent.AXIS_Z:   prevPtch = XashActivity.performEngineAxisEvent(-cur, XashActivity.JOY_AXIS_PITCH, prevPtch, dead); break;
+			case MotionEvent.AXIS_RZ:  prevYaw  = XashActivity.performEngineAxisEvent(-cur, XashActivity.JOY_AXIS_YAW,   prevYaw,  dead); break;
+			
+			// trigger
+			case MotionEvent.AXIS_RTRIGGER:	prevLT = XashActivity.performEngineAxisEvent(cur, XashActivity.JOY_AXIS_RT, prevLT,   dead); break;
+			case MotionEvent.AXIS_LTRIGGER:	prevRT = XashActivity.performEngineAxisEvent(cur, XashActivity.JOY_AXIS_LT, prevRT,   dead); break;
+			
+			// hats
+			case MotionEvent.AXIS_HAT_X: prevHX = XashActivity.performEngineHatEvent(cur, true, prevHX); break;
+			case MotionEvent.AXIS_HAT_Y: prevHY = XashActivity.performEngineHatEvent(cur, false, prevHY); break;
+			}
+		}
+
+		return true;
+	}
+	public boolean isGamepadButton(int keyCode)
+	{
+		return KeyEvent.isGamepadButton(keyCode);
+	}
+	public String keyCodeToString(int keyCode)
+	{
+		return KeyEvent.keyCodeToString(keyCode);
+	}
+	public void init()
+	{
+		XashActivity.mSurface.setOnGenericMotionListener(new MotionListener());
+	}
+
+	class MotionListener implements View.OnGenericMotionListener
+	{
+		@Override
+		public boolean onGenericMotion(View view, MotionEvent event)
+		{
+			if( ((XashActivity.handler.getSource(event) & InputDevice.SOURCE_CLASS_JOYSTICK) != 0) ||
+				(XashActivity.handler.getSource(event) & InputDevice.SOURCE_GAMEPAD) != 0 )
+				return XashActivity.handler.handleAxis( event );
+			// TODO: Add it someday
+			// else if( (event.getSource() & InputDevice.SOURCE_CLASS_TRACKBALL) == InputDevice.SOURCE_CLASS_TRACKBALL )
+			//	return XashActivity.handleBall( event );
+			//return super.onGenericMotion( view, event );
+			return false;
+		}
+	}
+
+}
+
+class ImmersiveMode
+{
+	void apply()
+	{
+		//stub
+	}
+}
+
+class ImmersiveMode_v19 extends ImmersiveMode
+{
+	@Override
+	void apply()
+	{
+		if( !XashActivity.keyboardVisible )
+			XashActivity.mDecorView.setSystemUiVisibility(
+					0x00000100 // View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| 0x00000200 // View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+					| 0x00000400 // View.SYSTEM_UI_FLAG_LAYOUT_FULSCREEN
+					| 0x00000002 // View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+					| 0x00000004 // View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+					| 0x00001000 // View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					);
+		else
+			XashActivity.mDecorView.setSystemUiVisibility( 0 );
+
+	}
 }

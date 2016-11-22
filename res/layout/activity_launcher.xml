@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<LinearLayout 
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/layout_shortcut"
@@ -8,8 +8,7 @@
 	android:orientation="vertical"
 	android:background="#252525"
 	android:weightSum="1"
-	tools:context="in.celest.xash3d.LauncherActivity">
-
+	tools:context="in.celest.xash3d.LauncherActivity" >
 	<TextView
 		android:id="@+id/textView_tittle"
 		android:layout_width="fill_parent"
@@ -96,6 +95,16 @@
 							android:background="#444444"
 							android:orientation="vertical"
 							android:weightSum="1">
+							
+							<TextView
+								android:layout_width="fill_parent"
+								android:layout_height="wrap_content"
+								android:layout_marginBottom="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="3dp"
+								android:text="@string/volume"
+								android:textAppearance="?android:attr/textAppearanceMedium" />
 
 							<ToggleButton
 								android:id="@+id/useVolume"
@@ -107,8 +116,17 @@
 								android:layout_marginTop="10dp"
 								android:text="nothing"
 								android:textOff="@string/no_volume"
-								android:textOn="@string/use_volume"/>
-
+								android:textOn="@string/use_volume" />
+							<TextView
+								android:id="@+id/textView_path"
+								android:layout_width="fill_parent"
+								android:layout_height="wrap_content"
+								android:layout_marginBottom="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="3dp"
+								android:text="@string/text_res_path"
+								android:textAppearance="?android:attr/textAppearanceMedium" />
 							<Button
 								android:id="@+id/button_select"
 								android:layout_width="match_parent"
@@ -133,6 +151,16 @@
 								android:onClick="selectGameMod"
 								android:text="@string/select_mod"/>
 
+							<Button
+								android:id="@+id/button_shortcut"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_marginBottom="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="10dp"
+								android:onClick="createShortcut"
+								android:text="@string/create_shortcut_button" />
 						</LinearLayout>
 
 					</LinearLayout>
@@ -194,7 +222,6 @@
 								android:layout_marginTop="3dp"/>
 
 							<TextView
-								android:id="@+id/textView_path"
 								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
 								android:layout_marginBottom="10dp"
@@ -213,26 +240,34 @@
 								android:layout_marginRight="10dp"
 								android:layout_marginTop="3dp"/>
 
-							<Button
-								android:id="@+id/button_shortcut"
-								android:layout_width="match_parent"
+							<TextView
+								android:layout_width="fill_parent"
 								android:layout_height="wrap_content"
 								android:layout_marginBottom="10dp"
 								android:layout_marginLeft="10dp"
 								android:layout_marginRight="10dp"
-								android:layout_marginTop="10dp"
-								android:onClick="createShortcut"
-								android:text="@string/create_shortcut_button"/>
-
+								android:layout_marginTop="3dp"
+								android:text="Pixel Format"
+								android:textAppearance="?android:attr/textAppearanceMedium" />
 							<Spinner
-								android:layout_height="match_parent"
-								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:layout_width="match_parent"
 								android:id="@+id/pixelSpinner"
 								android:layout_marginBottom="10dp"
 								android:layout_marginLeft="10dp"
 								android:layout_marginRight="10dp"
-								android:layout_marginTop="10dp"/>
-
+								android:layout_marginTop="10dp" />
+							<ToggleButton
+								android:id="@+id/enableResizeWorkaround"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="10dp"
+								android:text="enableResizeWorkaround"
+								android:textOff="Keyboard does not resize screen"
+								android:textOn="Keyboard resizes screen" />
 							<CheckBox
 								android:id="@+id/check_updates"
 								android:layout_width="match_parent"
@@ -241,8 +276,25 @@
 								android:layout_marginLeft="10dp"
 								android:layout_marginRight="10dp"
 								android:layout_marginTop="10dp"
-								android:text="@string/update_button"/>
-
+								android:text="@string/update_button" />
+							<CheckBox
+								android:id="@+id/check_betas"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="10dp"
+								android:text="@string/update_to_beta" />
+							<CheckBox
+								android:id="@+id/immersive_mode"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:layout_marginLeft="10dp"
+								android:layout_marginRight="10dp"
+								android:layout_marginTop="10dp"
+								android:text="@string/immersive_mode" />
 							<TextView
 								android:id="@+id/textView7"
 								android:layout_marginBottom="10dp"
@@ -292,6 +344,4 @@
 			android:text="@string/launch_button"/>
 
 	</LinearLayout>
-
 </LinearLayout>
-
