@@ -4,6 +4,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="in.celest.xash3d.hl"
+	android:sharedUserId="xash"
+	android:sharedUserLabel="@string/user_label"
 	android:versionCode="731"
 	android:versionName="0.19"
 	android:installLocation="auto">
