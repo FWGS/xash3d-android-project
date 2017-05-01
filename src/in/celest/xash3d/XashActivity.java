@@ -10,6 +10,7 @@ import android.app.*;
 import android.content.*;
 import android.view.*;
 import android.os.*;
+import android.os.storage.*;
 import android.util.*;
 import android.graphics.*;
 import android.text.method.*;
@@ -65,7 +66,6 @@ public class XashActivity extends Activity {
 	
 	private static int OPEN_DOCUMENT_TREE_RESULT = 1;
 	private static int FPICKER_RESULT = 2;
-	
 
 	// Joystick constants
 	public final static byte JOY_HAT_CENTERED = 0; // bitmasks for hat current status
@@ -447,6 +447,8 @@ public class XashActivity extends Activity {
 		String gamedir = getStringExtraFromIntent(intent, "gamedir", "valve");
 		String basedir = getStringExtraFromIntent(intent, "basedir", mPref.getString("basedir","/sdcard/xash/"));
 		String gdbsafe = intent.getStringExtra("gdbsafe");
+		String mainobb = intent.getStringExtra("mainobb");
+		
 		if( gdbsafe != null )
 			fGDBSafe = true;
 		if( Debug.isDebuggerConnected() )
@@ -460,6 +462,26 @@ public class XashActivity extends Activity {
 		setenv("XASH3D_GAMELIBDIR", gamelibdir, true);
 		setenv("XASH3D_GAMEDIR",    gamedir,    true);
 		setenv("XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pak", true);
+		
+		if( mainobb != null )
+		{
+			String[] patchobb = intent.getStringArrayExtra("patchobb");
+			
+			String mountpath = mountObb(mainobb, null);
+			if( mountpath != null )
+			{
+				if( patchobb != null )
+				{
+					for( int i = 0; i < patchobb.length; i++ )
+					{
+						// As far as I know, patches will have same mountpath as main obb file
+						mountObb( patchobb[i], null ); 
+					}
+				}
+				
+				setenv("XASH3D_RODIR", mountpath, true);
+			}
+		}
 		
 		String pakfile = intent.getStringExtra("pakfile");
 		if( pakfile != null && pakfile != "" )
@@ -480,6 +502,90 @@ public class XashActivity extends Activity {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	// borrowed from StorageManagerTest
+	private static class ObbObserver extends OnObbStateChangeListener 
+	{
+	    private static final long MAX_WAIT_TIME = 25*1000;
+		private static final long WAIT_TIME_INCR = 5*1000;
+		public String path;
+		public int state = -1;
+		boolean done = false;
+		@Override
+		public void onObbStateChange(String path, int state) {
+			Log.d(TAG, "Received message.  path=" + path + ", state=" + state);
+			synchronized (this) {
+				this.path = path;
+				this.state = state;
+				done = true;
+				notifyAll();
+			}
+		}
+        public String getPath() {
+			return path;
+		}
+		public int getState() {
+			return state;
+		}
+		public boolean isDone() {
+			return done;
+		}
+		public boolean waitForCompletion() {
+			long waitTime = 0;
+			synchronized (this) {
+				while (!isDone() && waitTime < MAX_WAIT_TIME) {
+					try {
+						wait(WAIT_TIME_INCR);
+						waitTime += WAIT_TIME_INCR;
+					} catch (InterruptedException e) {
+						Log.i(TAG, "Interrupted during sleep", e);
+					}
+				}
+			}
+			return isDone();
+		}
+	}
+
+	
+	// Mounts specified OBB in path in returns mountpath
+	// NULL if error
+	private String mountObb( String path, String key )
+	{
+		StorageManager sm = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
+		
+		if( sm == null )
+		{
+			Log.d(TAG, "StorageManager is NULL(wtf?)");
+			return null;
+		}
+		
+		ObbObserver observer = new ObbObserver();
+		
+		try
+		{
+			if( sm.mountObb( path, key, observer ) )
+			{
+				if( observer.waitForCompletion() )
+				{
+					if( observer.state == OnObbStateChangeListener.MOUNTED ||
+						observer.state == OnObbStateChangeListener.ERROR_ALREADY_MOUNTED )
+					{
+						String mountPath = sm.getMountedObbPath(path);
+						Log.d(TAG, "mountObb("+path+") is mounted successfully to "+mountPath);
+						return mountPath;
+					}
+				}
+			}
+			else Log.d(TAG, "StorageManager.mountObb returned false");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+		
+		return null;
 	}
 
 
