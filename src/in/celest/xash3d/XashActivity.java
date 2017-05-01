@@ -29,6 +29,8 @@ import android.view.inputmethod.*;
 import java.lang.*;
 import java.lang.reflect.*;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.security.MessageDigest;
 
 import in.celest.xash3d.hl.R;
@@ -47,6 +49,8 @@ public class XashActivity extends Activity {
 	protected static XashActivity mSingleton;
 	protected static View mTextEdit;
 	protected static ViewGroup mLayout;
+	
+	private static StorageManager mSM;
 	public static EngineSurface mSurface;
 	public static String mArgv[];
 	public static final int sdk = Integer.valueOf(Build.VERSION.SDK);
@@ -86,6 +90,8 @@ public class XashActivity extends Activity {
 	private static boolean mUseVolume;
 	public static View mDecorView;
 	
+	private static ProgressDialog mProgressDialog = null;
+	
 
 	// Load the .so
 	static {
@@ -121,6 +127,8 @@ public class XashActivity extends Activity {
 			setRequestedOrientation(0);
 			
 		mPref = this.getSharedPreferences("engine", 0);
+		
+		mSM = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
 		
 		if( mPref.getBoolean("folderask", true ) )
 		{
@@ -393,6 +401,13 @@ public class XashActivity extends Activity {
 		Log.v(TAG, "Everything is OK. Launching engine...");
 
 		setupEnvironment();
+	}
+	
+	private void continueLaunchEngine()
+	{
+		if( mEngineReady )
+			return;
+	
 		InstallReceiver.extractPAK(this, false);
 
 		// Set up the surface
@@ -437,18 +452,20 @@ public class XashActivity extends Activity {
 		mEngineReady = true;
 	}
 	
+	private Map<String, Integer> mObbMap;
 	private void setupEnvironment()
 	{
 		Intent intent = getIntent();
-		final String enginedir = getFilesDir().getParentFile().getPath() + "/lib";
-				
-		String argv = getStringExtraFromIntent(intent, "argv", mPref.getString("argv", "-dev 3 -log"));
-		String gamelibdir = getStringExtraFromIntent(intent, "gamelibdir", enginedir);
-		String gamedir = getStringExtraFromIntent(intent, "gamedir", "valve");
-		String basedir = getStringExtraFromIntent(intent, "basedir", mPref.getString("basedir","/sdcard/xash/"));
-		String gdbsafe = intent.getStringExtra("gdbsafe");
-		String mainobb = intent.getStringExtra("mainobb");
-		
+		final String enginedir  = getFilesDir().getParentFile().getPath() + "/lib";
+		final String argv       = getStringExtraFromIntent(intent, "argv",       mPref.getString("argv", "-dev 3 -log"));
+		final String gamelibdir = getStringExtraFromIntent(intent, "gamelibdir", enginedir);
+		final String gamedir    = getStringExtraFromIntent(intent, "gamedir",    "valve");
+		final String basedir    = getStringExtraFromIntent(intent, "basedir",    mPref.getString("basedir","/sdcard/xash/"));
+		final String gdbsafe = intent.getStringExtra("gdbsafe");
+		final String mainobb = intent.getStringExtra("mainobb");
+		final String pakfile = intent.getStringExtra("pakfile");
+		final String[] env   = intent.getStringArrayExtra("env");
+
 		if( gdbsafe != null )
 			fGDBSafe = true;
 		if( Debug.isDebuggerConnected() )
@@ -462,132 +479,124 @@ public class XashActivity extends Activity {
 		setenv("XASH3D_GAMELIBDIR", gamelibdir, true);
 		setenv("XASH3D_GAMEDIR",    gamedir,    true);
 		setenv("XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pak", true);
-		
-		if( mainobb != null )
-		{
-			String[] patchobb = intent.getStringArrayExtra("patchobb");
 			
-			String mountpath = mountObb(mainobb, null);
-			if( mountpath != null )
-			{
-				if( patchobb != null )
-				{
-					for( int i = 0; i < patchobb.length; i++ )
-					{
-						// As far as I know, patches will have same mountpath as main obb file
-						mountObb( patchobb[i], null ); 
-					}
-				}
-				
-				setenv("XASH3D_RODIR", mountpath, true);
-			}
-		}
-		
-		String pakfile = intent.getStringExtra("pakfile");
 		if( pakfile != null && pakfile != "" )
 			setenv("XASH3D_EXTRAS_PAK2", pakfile, true);
 		
-		String[] env = intent.getStringArrayExtra("env");
 		if( env != null )
 		{
 			try
 			{
 				for(int i = 0; i+1 < env.length; i+=2)
-				{
 					setenv(env[i], env[i+1], true);
-				}
 			}
 			catch(Exception e)
 			{
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	// borrowed from StorageManagerTest
-	private static class ObbObserver extends OnObbStateChangeListener 
-	{
-	    private static final long MAX_WAIT_TIME = 25*1000;
-		private static final long WAIT_TIME_INCR = 5*1000;
-		public String path;
-		public int state = -1;
-		boolean done = false;
-		@Override
-		public void onObbStateChange(String path, int state) {
-			Log.d(TAG, "Received message.  path=" + path + ", state=" + state);
-			synchronized (this) {
-				this.path = path;
-				this.state = state;
-				done = true;
-				notifyAll();
-			}
-		}
-        public String getPath() {
-			return path;
-		}
-		public int getState() {
-			return state;
-		}
-		public boolean isDone() {
-			return done;
-		}
-		public boolean waitForCompletion() {
-			long waitTime = 0;
-			synchronized (this) {
-				while (!isDone() && waitTime < MAX_WAIT_TIME) {
-					try {
-						wait(WAIT_TIME_INCR);
-						waitTime += WAIT_TIME_INCR;
-					} catch (InterruptedException e) {
-						Log.i(TAG, "Interrupted during sleep", e);
-					}
-				}
-			}
-			return isDone();
-		}
-	}
-
-	
-	// Mounts specified OBB in path in returns mountpath
-	// NULL if error
-	private String mountObb( String path, String key )
-	{
-		StorageManager sm = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
 		
-		if( sm == null )
+		if( mainobb != null && mainobb != "" )
 		{
-			Log.d(TAG, "StorageManager is NULL(wtf?)");
-			return null;
+			mProgressDialog = new ProgressDialog(this); // this = YourActivity
+			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			mProgressDialog.setMessage(getString(R.string.checking_updates));
+			mProgressDialog.setIndeterminate(true);
+			mProgressDialog.setCanceledOnTouchOutside(false);
+			mProgressDialog.show();
+			
+			mObbMap = new HashMap<String, Integer>();
+			Log.d( TAG, "Adding OBB: " + mainobb + " to list");
+			mObbMap.put(mainobb, -1);
+			
+			String[] patchobb = intent.getStringArrayExtra("patchobb");
+
+			for( int i = 0; patchobb != null && i < patchobb.length; i++ ) 
+				if( patchobb[i] != "" )
+				{
+					Log.d( TAG, "Adding OBB: " + patchobb[i] + " to list");
+					mObbMap.put(patchobb[i], -1);
+				}
+				
+			mountObb(mainobb, null, true);
+						
+			for( int i = 0; patchobb != null && i < patchobb.length; i++ )
+				if( patchobb[i] != "" )
+					mountObb( patchobb[i], null, false ); 
 		}
+		else
+		{
+			continueLaunchEngine();
+		}
+	}
 		
-		ObbObserver observer = new ObbObserver();
-		
+	// Mounts specified OBB in path and sets rodir
+	private void mountObb( String path, String key, final boolean isMain )
+	{
 		try
 		{
-			if( sm.mountObb( path, key, observer ) )
+			boolean ret;
+			
+			ret = checkMountedObb( path, isMain );
+			
+			if( !ret ) // try mount
 			{
-				if( observer.waitForCompletion() )
+				ret = mSM.mountObb( path, key, new OnObbStateChangeListener()
 				{
-					if( observer.state == OnObbStateChangeListener.MOUNTED ||
-						observer.state == OnObbStateChangeListener.ERROR_ALREADY_MOUNTED )
+					@Override
+					public void onObbStateChange(String path, int state)
 					{
-						String mountPath = sm.getMountedObbPath(path);
-						Log.d(TAG, "mountObb("+path+") is mounted successfully to "+mountPath);
-						return mountPath;
+						Log.d(TAG, "ObbStateChange("+path+", "+state+");");
+						
+						if( state == MOUNTED || state == ERROR_ALREADY_MOUNTED )
+							checkMountedObb(path, isMain);
+						else mObbMap.put( path, state );
 					}
-				}
+				});
+				
+				checkMountedObb( path, isMain );
 			}
-			else Log.d(TAG, "StorageManager.mountObb returned false");
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
-			return null;
+			// if( mProgressDialog != nul )
+			//	mProgressDialog.dismiss();
+			// continueLaunchEngine();
 		}
 		
-		return null;
 	}
-
+	
+	private boolean checkMountedObb( String path, boolean isMain )
+	{
+		if( !mSM.isObbMounted( path ) )
+			return false;
+		
+		mObbMap.put( path, 1 ); // mounted
+		String mountPath = mSM.getMountedObbPath(path);
+		Log.d(TAG, "Mounted OBB "+path+" to "+mountPath );
+		if( isMain )
+			setenv( "XASH3D_RODIR", mountPath, true );
+		
+		boolean complete = true;
+		for (Map.Entry<String, Integer> entry : mObbMap.entrySet())
+		{
+			if( entry.getValue() != 1 ) // MOUNTED
+			{
+				complete = false;
+				break;
+			}
+		}
+		
+		if( complete ) 
+		{
+			if( mProgressDialog != null ) 
+				mProgressDialog.dismiss();
+			continueLaunchEngine();
+		}
+		
+		return true;
+	}
 
 	public static native int  nativeInit(Object arguments);
 	public static native void nativeQuit();
