@@ -54,7 +54,7 @@
 	<string name="cancel">Отмена</string>
 	<string name="no_updates">Обновления не найдены</string>
 	<string name="checking_updates">Работаю...</string>
-	<string name="immersive_mode">Включить Immersive Mode(Полноэкранный режим, для KitKat и старше)</string>
+	<string name="immersive_mode">Включить Immersive Mode(Полноэкранный режим, для KitKat и выше)</string>
 	
 	<string name="write_failed">Тест чтения не удался</string>
 	
