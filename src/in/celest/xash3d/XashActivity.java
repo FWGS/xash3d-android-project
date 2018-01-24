@@ -37,6 +37,8 @@ import android.provider.Settings.Secure;
 
 import su.xash.fwgslib.*;
 import android.sax.*;
+import android.view.InputDevice.*;
+import java.io.*;
 
 /**
  Xash Activity
@@ -600,11 +602,14 @@ public class XashActivity extends Activity {
 	{
 		mSingleton.messageboxData[0] = title;
 		mSingleton.messageboxData[1] = text;
+		Log.v( "XASH", "MessageBox \n" + text );
 		mSingleton.runOnUiThread( new Runnable() 
 		{
 			@Override
 			public void run()
 			{
+				Log.v( "XASH", "MessageBox 1 \n" + mSingleton.messageboxData[1] );
+				
 				new AlertDialog.Builder( mSingleton )
 					.setTitle( mSingleton.messageboxData[0] )
 					.setMessage( mSingleton.messageboxData[1] )
@@ -620,6 +625,8 @@ public class XashActivity extends Activity {
 						})
 					.setCancelable( false )
 					.show();
+				Log.v( "XASH", "MessageBox 2 \n" + mSingleton.messageboxData[1] );
+				
 			}
 		});
 		synchronized( mSingleton.messageboxData ) 
@@ -633,6 +640,8 @@ public class XashActivity extends Activity {
 				ex.printStackTrace();
 			}
 		}
+		Log.v( "XASH", "MessageBox 3 \n" + mSingleton.messageboxData[1] );
+		
 	}
 
 	public static boolean handleKey( int keyCode, KeyEvent event )
@@ -1385,6 +1394,13 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 		return super.dispatchKeyEvent( event );
 	}
 
+	@Override
+	public PointerIcon onResolvePointerIcon( MotionEvent e, int i)
+	{
+		if( XashActivity.sdk >= 24 )
+			return (PointerIcon)XashActivity.handler.getPointerIcon();
+		return null;
+	}
 }
 
 /* This is a fake invisible editor view that receives the input and defines the
@@ -1730,6 +1746,11 @@ class JoystickHandler
 	{
 		return 0;
 	}
+
+	public Object getPointerIcon()
+	{
+		return null;
+	}
 }
 
 class Wrap_NVMouseExtensions
@@ -1738,7 +1759,7 @@ class Wrap_NVMouseExtensions
 	private static Method mInputManager_setCursorVisibility;
 	private static Method mView_setPointerIcon;
 	private static Class mPointerIcon;
-	private static Object mEmptyIcon;
+	public static Object mEmptyIcon;
 	public static int nMotionEvent_AXIS_RELATIVE_X = 0;
 	public static int nMotionEvent_AXIS_RELATIVE_Y = 0;
 	
@@ -1817,17 +1838,18 @@ class Wrap_NVMouseExtensions
 	//**************************************************************************
 	public static void setCursorVisibility( boolean fVisibility ) 
 	{
-		try 
+		//try 
 		{ 
-			mInputManager_setCursorVisibility.invoke( inputManager, fVisibility ); 
+			//mInputManager_setCursorVisibility.invoke( inputManager, fVisibility ); 
 			
 		}
-		catch( Exception e )
+		//catch( Exception e )
 		{
 			try
 			{
 				ViewGroup rootViewGroup = (ViewGroup) XashActivity.mSingleton.getWindow().getDecorView();
 				setGroupPointerIcon(rootViewGroup, fVisibility);
+				setGroupPointerIcon(XashActivity.mLayout, fVisibility);
 				setGroupPointerIcon((ViewGroup)XashActivity.mDecorView, fVisibility);
 				for (int i = 0; i < rootViewGroup.getChildCount(); i++) {
 					View view = rootViewGroup.getChildAt(i);
@@ -2014,6 +2036,10 @@ class JoystickHandler_v12 extends JoystickHandler
 	{
 		if( mNVMouseExtensions )
 			Wrap_NVMouseExtensions.setCursorVisibility( show );
+	}
+	public Object getPointerIcon()
+	{
+		return Wrap_NVMouseExtensions.mEmptyIcon;
 	}
 }
 
