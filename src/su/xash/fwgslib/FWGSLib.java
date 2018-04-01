@@ -24,6 +24,7 @@ import android.preference.*;
 public class FWGSLib
 {
 	private static final String TAG = "FWGSLib";
+	static String externalFilesDir;
 	public static boolean FBitSet( final int bits, final int mask )
 	{
 		return ((bits & mask) == mask);
@@ -110,14 +111,52 @@ public class FWGSLib
 			return dir.getPath() + "/xash";
 		return "/sdcard/xash";
 	}
-	
+	static class GetExternalFilesDir extends Thread
+	{
+		Context ctx;
+		GetExternalFilesDir( Context ctx1 )
+		{
+			ctx = ctx1;
+		}
+		@Override
+		public void run()
+		{
+			try
+			{
+				File f = ctx.getExternalFilesDir(null);
+
+				f.mkdirs();
+
+		 		externalFilesDir = f.getAbsolutePath();
+				Log.d(TAG, "getExternalFilesDir success");
+			}
+			catch( Exception e )
+			{
+				Log.e( TAG, e.toString(), e);
+			}
+		}
+	}
 	public static String getExternalFilesDir( Context ctx )
 	{
-		File f = ctx.getExternalFilesDir( null );
-		
-		f.mkdirs();
-		
-		return f.getAbsolutePath();
+		if( externalFilesDir != null )
+			return externalFilesDir;
+		try
+		{
+			if( sdk >= 8 )
+			{
+				Thread t = new GetExternalFilesDir(ctx);
+				t.start();
+				t.join(2000);
+			}
+		}
+		catch(Exception e)
+		{
+			Log.e( TAG, e.toString(), e);
+			externalFilesDir = getDefaultXashPath();
+		}
+		if( externalFilesDir == null )
+			externalFilesDir = getDefaultXashPath();
+		return externalFilesDir;
 	}
 	
 	public static boolean isLandscapeOrientation( Activity act )
