@@ -45,7 +45,7 @@
   <!-- Launcher(advanced) -->
 	
 	<!-- Launcher(buttons) -->
-	<string name="about_button">정ㅂ</string>
+	<string name="about_button">정보</string>
 	<string name="launch_button">Xash3D FWGS 실행!</string>
 	<!-- Launcher(buttons) -->
 	
@@ -82,7 +82,7 @@
 	<!-- /Write check  -->
 	
 	<!-- Tutorial -->
-	<string name="firstrun"설치 가이드 열기</string>
+	<string name="firstrun">설치 가이드 열기</string>
 	<!-- /Tutorial -->
 	
 	<!-- FPicker -->
