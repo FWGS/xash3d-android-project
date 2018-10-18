@@ -45,40 +45,40 @@
   <!-- Launcher(advanced) -->
 	
 	<!-- Launcher(buttons) -->
-	<string name="about_button">About</string>
+	<string name="about_button">정ㅂ</string>
 	<string name="launch_button">Xash3D FWGS 실행!</string>
 	<!-- Launcher(buttons) -->
 	
 	<!-- Shorcut -->
-	<string name="text_shortcut">Xash3D FWGS shortcut</string>
-	<string name="text_shortcut_test">Xash3D FWGS Test shortcut</string>
-	<string name="shortcut_button_save">Save shortcut</string>
-	<string name="gamedir">Mod directory</string>
-	<string name="pkgname">Mod package name (experts only)</string>
-	<string name="shortcut_name">Shortcut name</string>
+	<string name="text_shortcut">Xash3D FWGS 바로가기</string>
+	<string name="text_shortcut_test">Xash3D FWGS 테스트 바로가기</string>
+	<string name="shortcut_button_save">바로가기 저장</string>
+	<string name="gamedir">모드 디렉토리</string>
+	<string name="pkgname">모드 패키지 이름 (숙련자만)</string>
+	<string name="shortcut_name">바로가기 이름</string>
 	<!-- Shorcut -->
 	
 	<!-- About -->
-	<string name="about_copyright">Flying With Gauss is not affiliated with Valve or any of their partners. All copyrights reserved to their respective owners.</string>
+	<string name="about_copyright">Fly With Gaus는 밸브 또는 해당 사업파트너와는 관련이 없습니다. 모든 저작권은 각각의 소유자에게 있습니다.</string>
 	<!-- About -->
 	
 	<!-- Update -->
-	<string name="update_message">%s is available! Download it now!</string>
-	<string name="update">Update</string>
-	<string name="no_updates">No updates was found</string>
-	<string name="checking_updates">Working...</string>
+	<string name="update_message">%s을(를) 사용할 수 있습니다! 지금 다운로드하세요!</string>
+	<string name="update">업데이트</string>
+	<string name="no_updates">업데이트를 찾을수 없음</string>
+	<string name="checking_updates">작업중...</string>
 	<!-- Update -->
 	
 	<!-- Write check  -->
-  <string name="write_failed">Write test has failed</string>
+ 	<string name="write_failed">쓰기 테스트 실패</string>
 	<string name="ask_about_new_basedir_msg">Move your game files somewhere else, for example Android/data/in.celest.xash3d.hl or internal memory. At next run I will ask you about folder again.</string>
 	<!-- These strings must be concat with a "ask_about_new_basedir" string -->
-	<string name="lollipop_request_permission_fail_msg">Write test has been failed twice. </string>
-	<string name="lollipop_write_fail_msg">Due to writing politics of newer Android versions, you can\'t use this storage. </string>
-	<string name="kitkat_write_fail_msg">Due to writing politics of Android 4.4, you can\'t use this storage. </string>
-	<string name="readonly_fs_fail_msg">Seems you have read-only filesystem. </string>
-	<string name="convert_to_rodir">Convert to RoDir</string>
-	<string name="rodir_warning">Please note, that your game settings and saves will be stored in %s</string>
+	<string name="lollipop_request_permission_fail_msg">쓰기 테스트가 두 번 실패했습니다. </string>
+	<string name="lollipop_write_fail_msg">최신 Android 버전의 쓰기권한 때문에 이 저장공간을 사용할 수 없습니다.</string>
+	<string name="kitkat_write_fail_msg">Android 4.4의 쓰기권한 때문에 이 저장공간을 사용할 수 없습니다.</string>
+	<string name="readonly_fs_fail_msg">파일에 읽기 전용 속성이 있는 것 같습니다.</string>
+	<string name="convert_to_rodir">RoDir로 변환</string>
+	<string name="rodir_warning">게임 설정과 진행상황은 %s에 저장됩니다.</string>
 	<!-- /Write check  -->
 	
 	<!-- Tutorial -->
@@ -86,10 +86,10 @@
 	<!-- /Tutorial -->
 	
 	<!-- FPicker -->
-	<string name="folder">Set current folder</string>
-	<string name="parent_directory">Parent directory</string>
-	<string name="chosen_path">Chosen path:</string>
-	<string name="current_dir">Current directory:</string>
+	<string name="folder">현재 폴더 설정</string>
+	<string name="parent_directory">상위 폴더</string>
+	<string name="chosen_path">선택한 경로:</string>
+	<string name="current_dir">현제 디렉토리:</string>
 
 	<plurals name="item_plurals">
 		<item quantity="zero">Нет папок</item>
