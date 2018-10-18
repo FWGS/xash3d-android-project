@@ -92,10 +92,9 @@
 	<string name="current_dir">현제 디렉토리:</string>
 
 	<plurals name="item_plurals">
-		<item quantity="zero">Нет папок</item>
-		<item quantity="one">%d папка</item>
-		<item quantity="few">%d папки</item>
-        <item quantity="other">%d папок</item>
+		<item quantity="zero">폴더 없음</item>
+		<item quantity="one">%d 폴더</item>
+        <item quantity="other">%d개의 폴더</item>
 	</plurals>
 	<!-- /FPicker -->
 </resources>
