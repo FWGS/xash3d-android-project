@@ -28,11 +28,10 @@
 	<!-- Launcher(advanced) -->
   <string name="text_res_tittle3">고급 설정</string>
 	<string name="cmd_args_text">시작 옵션 설정(숙련자만 사용)</string>
-	<string name="no_rodir">Classic game data placement</string>
+	<string name="no_rodir">클래식 게임 데이터 배치</string>
 	<string name="use_rodir">Store writable data separately</string>
 	<string name="text_res_rw_path">Path to store writable data(configs, game saves, etc)</string>
 	<string name="use_rodir_auto">Use application folder</string>
-	<string name="pixel_format" translatable="false">Pixel format:</string>
 	<string name="resize_off">Keyboard does not resize screen</string>
 	<string name="resize_on">Keyboard resizes screen</string>
 	<string name="update_button">Check updates on start</string>
