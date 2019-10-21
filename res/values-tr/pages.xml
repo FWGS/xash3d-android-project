@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="page_title0">Merhaba!</string>
+	<string name="page_content0">Xash3D FWGS\'ye hoşgeldin! Devam etmeden önce kurulum rehberimizi okumanızı tavsiye ederiz. Devam etmek için <b>Sonraki</b> tuşuna basınız. Oyun dosyalarına zaten sahipseniz veya bu diyaloğu geçmek istiyorsanız <b>Geç</b> tuşuna basınız.</string>
+	
+	<string name="page_title1">Half-Life\'ı Steam\'den al</string>
+	<string name="page_content1">Oynamak için Steam\'de Half-Life\'ı satın almış olmanız gerekmektedir. Steam\'i bilgisayarınıza yükleyin. Oyunu satın almadıysanız, satın alın. <b>İndir</b> tuşuna basın ve oyun inene kadar bekleyin.</string>
+	
+	<string name="page_title2">Oyunun klasörünü aç</string>
+	<string name="page_content2">Steam\'de oyun özelliklerini aç, <b>Yerel Dosyalar</b> sekmesine git ve <b>Yerel dosyalara göz at...</b> tuşuna bas. Bir dosya gezgini penceresi açılacaktır.</string>
+	
+	<string name="page_title3">Dosyaları cihaza kopyala</string>
+	<string name="page_content3">Cihazınızı bilgisayarınıza bağlayın. Cihazınızın dahili hafızasında <b>xash</b> adlı bir klasör oluşturup bilgisayarınızdan <b>valve</b> klasörünü kopyalayın. Eğer dahili hafızanızda yeteri kadar yer yok ise, bu işlem harici SD kart içinde yapılabilir. Eğer bu işlemi harici SD kart için yapmak istiyorsanız, bu dosyalar <b>Android/data/in.celest.xash3d.hl/files</b> klasörüne kopyalanmalıdır. (eğer bu klasörler yoksa oluşturunuz).</string>
+	
+	<string name="page_title4">Oyun yolunu ayarla</string>
+	<string name="page_content4">Oyunu cihazınıza başarı ile kopyaladıktan sonra, Xash3D FWGS\'de <b>valve</b> klasörünün nerede bulunduğunu ayarlamanız gerekmektedir. <font color="yellow"> Önemli not: <b>valve</b> klasörünün kendisini <b>DEĞİL</b>, bulunduğu klasörü seçmelisiniz.</font> Şimdi bu diyalogu kapatın ve <b>Oyun dosyalarının konumu seç</b> tuşuna oyunun dosyalarının bulunduğu konumu seçin. İyi şanslar ve iyi eğlenceler!</string>
+</resources>
