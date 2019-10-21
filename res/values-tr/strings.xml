@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name" translatable="false">Xash3D FWGS</string>
+	<string name="launcher_name" translatable="false">Xash3D FWGS</string>
+	<string name="launcher_name_test" translatable="false">Xash3D FWGS Test</string>
+	<string name="version_string" translatable="false">v0.19.3</string>
+	
+	<!-- Generic -->
+	<string name="cancel">Vazgeç</string>
+	<string name="ok">Tamam</string>
+	<string name="next">Sonraki</string>
+	<string name="prev">Önceki</string>
+	<string name="skip">Geç</string>
+	<string name="finish">Bitir</string>
+	<string name="exit">Çık</string>
+	<string name="text_res_path">Oyun dosyaları yolu</string>
+	<!-- Generic -->
+
+	<!-- Launcher(tabs) -->
+	<string name="text_tab1">Normal</string>
+	<string name="text_tab2">Gelişmiş</string>
+	<!-- Launcher(tabs) -->
+	
+	<!-- Launcher(normal) -->
+	<string name="text_res_tittle2">Normal ayarlar</string>
+	<string name="volume">Ses tuşları modu</string>
+	<string name="use_volume">Varsayılan aksiyon</string>
+	<string name="no_volume">Oyunun içinde kullan</string>
+	<string name="select_folder">Oyun dosyalarının konumu seç</string>
+	<string name="create_shortcut_button">Mod için kısayol oluştur</string>
+	<!-- Launcher(normal) -->
+	
+	<!-- Launcher(advanced) -->
+	<string name="text_res_tittle3">Gelişmiş ayarlar</string>
+	<string name="cmd_args_text">Başlatma parametreleri(gelişmiş)</string>
+	<string name="no_rodir">Oyun dosyalarını değiştir</string>
+	<string name="use_rodir">Kaydedilen veriyi ayrı bir şekilde tut</string>
+	<string name="text_res_rw_path">Kaydedilen verilerin tutulacağı klasörün yolu (ayarlar, oyun kayıtları, vs)</string>
+	<string name="use_rodir_auto">Uygulama klasörünü kullan</string>
+	<string name="pixel_format" translatable="false">Pixel format:</string>
+	<string name="resize_off">Klavye ekranı yeniden boyutlandırmasın</string>
+	<string name="resize_on">Klavye ekranı yeniden boyutlandırsın</string>
+	<string name="update_button">Başlangıçta güncellemeleri kontrol et</string>
+	<!--<string name="update_to_beta">Update to unstable version if available</string>-->
+	<string name="immersive_mode">Geniş ekranı etkinleştir(tam ekran, KitKat ve üzeri)</string>
+	<string name="resolution">Sabit ekran çözünürlüğü (deneysel)</string>
+	<string name="resolution_scale">Ekranı çerçeve oranını koruyarak ölçeklendir</string>
+	<string name="resolution_custom">Ekran yüksekliğini ve genişliğini giriniz</string>
+	<string name="resolution_result">Çözünürlük: </string>	
+	<string name="resolution_mod_warn">Dikkatli kullanın! Bazı oyunlar çok düşük çözünürlükleri desteklememektedir. Herhangi bir hata olursa çözünürlüğü 640x480 veya daha yüksek yapın.\n320x240\'dan daha küçük çözünürlükler çalışmayacaktır.</string>
+	<!-- Launcher(advanced) -->
+	
+	<!-- Launcher(buttons) -->
+	<string name="about_button">Hakkında</string>
+	<string name="launch_button">Xash3D FWGS\'yi başlat!</string>
+	<!-- Launcher(buttons) -->
+	
+	<!-- Shorcut -->
+	<string name="text_shortcut">Xash3D FWGS kısayolu</string>
+	<string name="text_shortcut_test">Xash3D FWGS Test kısayolu</string>
+	<string name="shortcut_button_save">Kısayolu kaydet</string>
+	<string name="gamedir">Mod klasörü</string>
+	<string name="pkgname">Mod paketi adı (gelişmiş kullanıcılar)</string>
+	<string name="shortcut_name">Kısayol adı</string>
+	<!-- Shorcut -->
+	
+	<!-- About -->
+	<string name="about_main" translatable="false">Xash3D FWGS</string>
+	<string name="about_copyright">Flying With Gauss\'un, Valve ile veya herhangi bir ortağı ile ilişkisi bulunmamaktadır. Tüm fikri mülkiyet hakları hak sahiplerine aittir.</string>
+	<!-- Seems Android skips any line breaks and tabs here. -->
+	<string name="about_authors" translatable="false">
+		Flying With Gauss team tarafından Android\'e portlanmıştır: \n
+		&#8226; a1batross\n
+		&#8226; mittorn \n
+		&#8226; nicknekit\n
+		&#8226; nekonomicon.\n
+		
+		Özel teşekkürler:\n
+		&#8226; Bazı dokunmatik arayüz resimleri için Beloko\'ya\n
+		&#8226; Xash3D için Uncle Mike\'a\n
+		&#8226; Half-Life için Valve\'a\n
+		&#8226; msayan for tutorial-view library\n
+	</string>
+	<string name="about_links" translatable="false">
+		&#8226; <a href="https://vk.com/xashdroid">VK</a>\n
+		&#8226; <a href="http://moddb.com/games/xash3d-android">ModDB</a>\n
+		&#8226; <a href="https://github.com/FWGS">GitHub</a>
+		&#8226; <a href="http://xash.su/pp/privacy-policy-xash3d.html">Gizlilik Politikası</a>
+	</string>
+	<!-- About -->
+	
+	<!-- Update -->
+	<string name="update_message">%s hazır! Şimdi indir!</string>
+	<string name="update">Güncelle</string>
+	<string name="no_updates">Herhangi bir güncelleme bulunamadı</string>
+	<string name="checking_updates">Kontrol ediliyor...</string>
+	<!-- Update -->
+	
+	<!-- Write check  -->
+	<string name="write_failed">Yazma testi başarısız</string>
+	<string name="ask_about_new_basedir_msg">Dosyalarınızı başka bir yere taşıyın. Örneğin Android/data/in.celest.xash3d.hl veya dahili depolama. Bir sonraki başlatmada sizden klasör sorulacak.</string>
+	<!-- These strings must be concat with a "ask_about_new_basedir" string -->
+	<string name="lollipop_request_permission_fail_msg">Yazma testi iki kere başarısız oldu. </string>
+	<string name="lollipop_write_fail_msg">Yeni Android sürümlerinin dosya sistemi poliçeleri yüzünden bu depolama aygıtını kullanamazsınız. </string>
+	<string name="kitkat_write_fail_msg">Android 4.4\'ün dosya sistemi poliçeleri yüzünden bu depolama aygıtını kullanamazsınız. </string>
+	<string name="readonly_fs_fail_msg">Görünüşe göre sadece okunabilen bir dosya sisteminiz var. </string>
+	<string name="convert_to_rodir">RoDir\'e dönüştür</string>
+	<string name="rodir_warning">Lütfen oyun ayarlarınızın %s\'da depolanacağını unutmayınız</string>
+	<!-- /Write check  -->
+	
+	<!-- Tutorial -->
+	<string name="firstrun">Kurulum rehberini aç</string>
+	<!-- /Tutorial -->
+	
+	<!-- FPicker -->
+	<string name="folder">Şu anki klasörü seç</string>
+	<string name="parent_directory">Üst klasör</string>
+	<string name="chosen_path">Seçilen yol:</string>
+	<string name="current_dir">Şu anki klasör:</string>
+
+	<plurals name="item_plurals">
+		<item quantity="zero">Klasör yok</item>
+		<item quantity="one">%d klasör</item>
+        <item quantity="other">%d klasör</item>
+	</plurals>
+	<!-- /FPicker -->
+</resources>
