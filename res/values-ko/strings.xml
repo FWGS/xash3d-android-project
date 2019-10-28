@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>	
+	<!-- Generic -->
+	<string name="cancel">취소</string>
+	<string name="ok">확인</string>
+	<string name="next">다음</string>
+	<string name="prev">이전</string>
+	<string name="skip">건너뛰기</string>
+	<string name="finish">완료</string>
+	<string name="exit">나가기</string>
+	<string name="text_res_path">게임 리소스 경로</string>
+	<!-- Generic -->
+
+	<!-- Launcher(tabs) -->
+	<string name="text_tab1">일반</string>
+	<string name="text_tab2">고급</string>
+	<!-- Launcher(tabs) -->
+	
+	<!-- Launcher(normal) -->
+	<string name="text_res_tittle2">일반 설정</string>
+	<string name="volume">볼륨버튼 모드</string>
+	<string name="use_volume">기본 액션</string>
+  <string name="no_volume">게임에서 사용</string>
+	<string name="select_folder">게임데이터 위치 설정</string>
+	<string name="create_shortcut_button">모드 바로가기 생성</string>
+	<!-- Launcher(normal) -->
+	
+	<!-- Launcher(advanced) -->
+  <string name="text_res_tittle3">고급 설정</string>
+	<string name="cmd_args_text">시작 옵션 설정(숙련자만 사용)</string>
+	<string name="no_rodir">클래식 게임 데이터 배치</string>
+	<string name="use_rodir">Store writable data separately</string>
+	<string name="text_res_rw_path">쓰기 가능한 데이터 저장 경로(구성, 게임 저장 등)</string>
+	<string name="use_rodir_auto">애플리케이션 폴더 사용</string>
+	<string name="resize_off">키보드가 화면 크기를 조정하지 않음</string>
+	<string name="resize_on">키보드가 화면 크기를 조정</string>
+	<string name="update_button">Check updates on start</string>
+	<!--<string name="update_to_beta">Update to unstable version if available</string>-->
+	<string name="immersive_mode">Immersive 모드 사용(전체 화면, KitKat 이상)</string>
+	<string name="resolution">고정 화면 해상도(실험적)</string>
+	<string name="resolution_scale">화면 배율 유지</string>
+	<string name="resolution_custom">Specify screen width and height</string>
+	<string name="resolution_result">Resolution: </string>	
+	<string name="resolution_mod_warn">Use with caution! Some games does not support too low resolution, in case of bugs increase resolution to 640x480 or higher.\nResolution lower than 320x240 is ignored.</string>
+  <!-- Launcher(advanced) -->
+	
+	<!-- Launcher(buttons) -->
+	<string name="about_button">정보</string>
+	<string name="launch_button">Xash3D FWGS 실행!</string>
+	<!-- Launcher(buttons) -->
+	
+	<!-- Shorcut -->
+	<string name="text_shortcut">Xash3D FWGS 바로가기</string>
+	<string name="text_shortcut_test">Xash3D FWGS 테스트 바로가기</string>
+	<string name="shortcut_button_save">바로가기 저장</string>
+	<string name="gamedir">모드 디렉토리</string>
+	<string name="pkgname">모드 패키지 이름 (숙련자만)</string>
+	<string name="shortcut_name">바로가기 이름</string>
+	<!-- Shorcut -->
+	
+	<!-- About -->
+	<string name="about_copyright">Fly With Gaus는 밸브 또는 해당 사업파트너와는 관련이 없습니다. 모든 저작권은 각각의 소유자에게 있습니다.</string>
+	<!-- About -->
+	
+	<!-- Update -->
+	<string name="update_message">%s을(를) 사용할 수 있습니다! 지금 다운로드하세요!</string>
+	<string name="update">업데이트</string>
+	<string name="no_updates">업데이트를 찾을수 없음</string>
+	<string name="checking_updates">작업중...</string>
+	<!-- Update -->
+	
+	<!-- Write check  -->
+ 	<string name="write_failed">쓰기 테스트 실패</string>
+	<string name="ask_about_new_basedir_msg">Move your game files somewhere else, for example Android/data/in.celest.xash3d.hl or internal memory. At next run I will ask you about folder again.</string>
+	<!-- These strings must be concat with a "ask_about_new_basedir" string -->
+	<string name="lollipop_request_permission_fail_msg">쓰기 테스트가 두 번 실패했습니다. </string>
+	<string name="lollipop_write_fail_msg">최신 Android 버전의 쓰기권한 때문에 이 저장공간을 사용할 수 없습니다.</string>
+	<string name="kitkat_write_fail_msg">Android 4.4의 쓰기권한 때문에 이 저장공간을 사용할 수 없습니다.</string>
+	<string name="readonly_fs_fail_msg">파일에 읽기 전용 속성이 있는 것 같습니다.</string>
+	<string name="convert_to_rodir">RoDir로 변환</string>
+	<string name="rodir_warning">게임 설정과 진행상황은 %s에 저장됩니다.</string>
+	<!-- /Write check  -->
+	
+	<!-- Tutorial -->
+	<string name="firstrun">설치 가이드 열기</string>
+	<!-- /Tutorial -->
+	
+	<!-- FPicker -->
+	<string name="folder">현재 폴더 설정</string>
+	<string name="parent_directory">상위 폴더</string>
+	<string name="chosen_path">선택한 경로:</string>
+	<string name="current_dir">현제 디렉토리:</string>
+
+	<plurals name="item_plurals">
+		<item quantity="zero">폴더 없음</item>
+		<item quantity="one">%d 폴더</item>
+        <item quantity="other">%d개의 폴더</item>
+	</plurals>
+	<!-- /FPicker -->
+</resources>
