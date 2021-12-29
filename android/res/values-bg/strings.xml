@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="skip">Пропусни</string>
+    <string name="exit">Изход</string>
+    <string name="text_res_path">Път към файловете на играта</string>
+    <string name="resolution_result">Резолюция:</string>
+    <string name="cancel">Отмяна</string>
+    <string name="create_shortcut_button">Създай пряк път към мод</string>
+    <string name="launch_button">Стартирай Xash3D FWGS!</string>
+    <string name="text_shortcut">Xash3D FWGS пряк път</string>
+    <string name="shortcut_button_save">Запази прекият път</string>
+    <string name="gamedir">Местоположение към мода</string>
+    <string name="shortcut_name">Име на прекият път</string>
+    <string name="update_message">%s е наличен. Свали го сега!</string>
+</resources>
