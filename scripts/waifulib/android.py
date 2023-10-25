@@ -64,7 +64,7 @@ def configure(conf):
 	conf.env.termux = conf.options.termux
 
 	# mandatory
-	for i in ['zipalign', 'apksigner', 'zip']:
+	for i in ['zipalign', 'zip', 'jarsigner']:
 		conf.find_program(i, path_list = paths)
 
 	# optional
@@ -187,8 +187,8 @@ setattr(javaw.javac, 'runnable_status', custom_runnable_status)
 
 class apkjni(Task.Task):
 	color = 'BLUE'
-	run_str = '${ZIP} -ru ${OUTAPK_UNALIGNED_NOCLASSES_NOJNI} ${JNIDIR} --out ${TGT}'
-	vars = ['ZIP', 'JNIDIR', 'OUTAPK_UNALIGNED_NOCLASSES_NOJNI']
+	run_str = '${ZIP} -ru ${OUTDIR}/${OUTAPK_UNALIGNED_NOCLASSES_NOJNI} ${JNIDIR} --out ${TGT}'
+	vars = ['ZIP', 'JNIDIR', 'OUTAPK_UNALIGNED_NOCLASSES_NOJNI', 'JNIROOT', 'OUTDIR']
 
 	def runnable_status(self):
 		"""
@@ -199,7 +199,8 @@ class apkjni(Task.Task):
 				return Task.ASK_LATER
 
 		# I could use SRC here, but I need to track changes of OUTAPK_UNALIGNED_NOCLASSES_NOJNI also
-		self.inputs += self.generator.outdir.ant_glob('{0}/**/*'.format(self.env.JNIDIR), quiet=True)
+		self.inputs += self.env.JNIROOT.ant_glob('%s/**/*' % self.env.JNIDIR, quiet=True)
+		self.cwd = self.env.JNIROOT.parent
 
 		return super(apkjni, self).runnable_status()
 
@@ -223,6 +224,9 @@ class apksigner(SignerTask):
 class apksigner_termux(SignerTask):
 	run_str = '${APKSIGNER} ${KEYSTORE} ${SRC} ${TGT}'
 
+class jarsigner(SignerTask):
+	run_str = '${JARSIGNER} -keystore ${KEYSTORE} -storepass ${KS_PASS} -keypass ${KEY_PASS} -signedjar ${TGT} ${SRC} ${KS_ALIAS}'
+
 @TaskGen.feature('android')
 @TaskGen.before_method('apply_java')
 def apply_aapt(self):
@@ -245,6 +249,7 @@ def apply_aapt(self):
 
 	try:
 		self.env.JNIDIR = self.jni
+		self.env.JNIROOT = self.jniroot
 	except AttributeError:
 		pass
 
@@ -314,13 +319,13 @@ def apply_d8(self):
 		self.env.KEYSTORE = self.keystore.abspath()
 		if 'debug' in self.env.KEYSTORE:
 			self.env.KS_ALIAS = 'androiddebugkey'
-			self.env.KS_PASS = self.env.KEY_PASS = 'pass:android'
+			self.env.KS_PASS = self.env.KEY_PASS = 'android' if self.env.JARSIGNER else 'pass:android'
 		else:
 			self.env.KS_ALIAS = self.ks_alias
 			self.env.KS_PASS  = self.ks_pass
 			self.env.KEY_PASS = self.key_pass
 
-		self.apksigner_task = self.create_task('apksigner' if not self.env.termux else 'apksigner_termux',
+		self.apksigner_task = self.create_task('jarsigner' if self.env.JARSIGNER else 'apksigner' if not self.env.termux else 'apksigner_termux',
 			self.outdir.make_node(self.env.OUTAPK),
 			self.outdir.make_node(self.env.OUTAPK_SIGNED))
 	except AttributeError:
