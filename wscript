@@ -41,7 +41,7 @@ def options(opt):
 		help = 'don\'t recurse into specified subprojects. Current subdirs: ' + str(subdirs()))
 
 	for i in SUBDIRS:
-		if not os.path.isfile(os.path.join(i.name, 'wscript')):
+		if not os.path.isfile(os.path.join(str(opt.path), i.name, 'wscript')):
 			# HACKHACK: this way we get warning message right in the help
 			# so this just becomes more noticeable
 			opt.add_option_group('Cannot find wscript in ' + i.name + '. You probably missed submodule update')
