@@ -1,27 +1,62 @@
 #!/usr/bin/env python
 # encoding: utf-8
 # a1batross, 2019
+import os
 
 def options(opt):
 	# opt.load('java')
+	print('opt android')
 	opt.load('android')
 	return
 
 def configure(conf):
-	conf.load('android')
+	conf.load('android', os.path.join(str(conf.path), '../scripts/waifulib'))
 	conf.env.D8_DEBUG = conf.options.BUILD_TYPE != 'release'
 	# conf.load('java')
 	return
 
+from waflib import Task
+
+class copylibs(Task.Task):
+	color = 'GREEN'
+	run_str = '${CP} ${SRC} ${TGT}'
+	ext_in  = ['.so']
+
+from waflib import TaskGen, Task
+
+class copy(Task.Task):
+	def run(self):
+		return self.exec_command('cp %s %s' % (self.inputs[0].abspath(), self.outputs[0].abspath()))
+
 def build(bld):
+	jni_dir = bld.root.get_bld().parent.make_node('lib')
+	print(jni_dir.abspath())
+	arch_dir = jni_dir.make_node("arm64-v8a")
+	@TaskGen.feature('cshlib')
+	@TaskGen.after_method('apply_link')
+	def copy_lib(self):
+		lib = self.link_task.outputs[0]
+		self.copy_task = self.create_task('copy',rule='cp ${SRC} ${TGT}')
+		self.copy_task.set_inputs(lib)
+		self.copy_task.set_outputs(arch_dir.find_or_declare('lib'+self.name+'.so'))
+		bld.add_manual_dependency(arch_dir,lib)
+		print(lib,self.name)
+	jni = bld(rule='${CP} ${SRC} ${TGT}', tgt=jni_dir, name='jni',src='client',use='xash')
+	#bld.add_manual_dependency('xashdroid.apk',arch_dir)
+	#print(bld.get_tgen_by_name('client').__dict__)
+
 	tsk = bld(features = 'android javac',
 		srcdir = 'src',
 		compat = '1.6',
 		name = 'xashdroid',
 		jni = 'lib',
+		jniroot = jni_dir,
 		keystore = bld.path.parent.find_node('debug.keystore'),
 		debug = bld.env.D8_DEBUG,
-		target_api = 29)
+		target_api = 29,
+		always_run = True)
 
 	tsk.env.append_unique('JAVACFLAGS', ['-target', '1.6'])
+	#bld.add_manual_dependency('client', 'lib')
+	#tsk.set_run_after('jni')
 	return
