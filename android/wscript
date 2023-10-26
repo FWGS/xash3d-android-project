@@ -32,7 +32,7 @@ def build(bld):
 	jni_dir = bld.root.get_bld().parent.make_node('lib')
 	print(jni_dir.abspath())
 	arch_dir = jni_dir.make_node("arm64-v8a")
-	@TaskGen.feature('cshlib')
+	@TaskGen.feature('cshlib','cxxshlib')
 	@TaskGen.after_method('apply_link')
 	def copy_lib(self):
 		lib = self.link_task.outputs[0]

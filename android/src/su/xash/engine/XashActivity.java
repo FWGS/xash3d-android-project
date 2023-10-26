@@ -1087,8 +1087,8 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	{
 		Log.v( TAG, "surfaceCreated()" );
 		
-		if( mEGL == null )
-			return;
+//		if( mEGL == null )
+//			return;
 		
 		XashActivity.nativeSetPause( 0 );
 		XashActivity.mEnginePaused = false;
@@ -1101,16 +1101,18 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	{
 		Log.v( TAG, "surfaceDestroyed()" );
 		
-		if( mEGL == null )
-			return;
+//		if( mEGL == null )
+//			return;
 		
 		XashActivity.nativeSetPause(1);
+		engineThreadWait();
 	}
 
 	// Called when the surface is resized
 	public void surfaceChanged( SurfaceHolder holder, int format, int width, int height )
 	{
-		Log.v( TAG, "surfaceChanged()" );
+		Log.v( TAG, "surfaceChanged(" + width + ","+ height+")" ); 
+/*
 		if( ( XashActivity.mForceHeight!= 0 && XashActivity.mForceWidth!= 0 || XashActivity.mScale != 0 ) && !resizing )
 		{
 			int newWidth, newHeight;
@@ -1131,7 +1133,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 			
 			width = newWidth;
 			height = newHeight;
-		}
+		}*/
 
 		// Android may force only-landscape app to portait during lock
 		// Just don't notify engine in that case
@@ -1327,14 +1329,16 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	
 	public void toggleEGL( int toggle )
 	{
+	    Log.v( TAG, "toggleEGL " + toggle );
 	   if( toggle != 0 )
 	   {
-			mEGLSurface = mEGL.eglCreateWindowSurface( mEGLDisplay, mEGLConfig, this, null );
+			if( mEGLSurface == null )
+				mEGLSurface = mEGL.eglCreateWindowSurface( mEGLDisplay, mEGLConfig, this, null );
 			mEGL.eglMakeCurrent( mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext );
 	   }
 	   else
 	   {
-			mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT );
+			mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, mEGLContext );
 			mEGL.eglDestroySurface( mEGLDisplay, mEGLSurface );
 			mEGLSurface = null;
 	   }
