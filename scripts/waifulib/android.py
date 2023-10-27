@@ -64,7 +64,7 @@ def configure(conf):
 	conf.env.termux = conf.options.termux
 
 	# mandatory
-	for i in ['zipalign', 'jarsigner']:
+	for i in ['zipalign', 'zip','jarsigner']:
 		conf.find_program(i, path_list = paths)
 
 	# optional
