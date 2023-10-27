@@ -64,7 +64,7 @@ def configure(conf):
 	conf.env.termux = conf.options.termux
 
 	# mandatory
-	for i in ['zipalign', 'zip', 'jarsigner']:
+	for i in ['zipalign', 'jarsigner']:
 		conf.find_program(i, path_list = paths)
 
 	# optional
@@ -185,7 +185,7 @@ def custom_runnable_status(self):
 setattr(javaw.javac, 'old_runnable_status', getattr(javaw.javac, 'runnable_status', None))
 setattr(javaw.javac, 'runnable_status', custom_runnable_status)
 
-class apkjni(Task.Task):
+class apkjni1(Task.Task):
 	color = 'BLUE'
 	run_str = '${ZIP} -ru ${OUTDIR}/${OUTAPK_UNALIGNED_NOCLASSES_NOJNI} ${JNIDIR} --out ${TGT}'
 	vars = ['ZIP', 'JNIDIR', 'OUTAPK_UNALIGNED_NOCLASSES_NOJNI', 'JNIROOT', 'OUTDIR']
@@ -203,6 +203,54 @@ class apkjni(Task.Task):
 		self.cwd = self.env.JNIROOT.parent
 
 		return super(apkjni, self).runnable_status()
+
+import zipfile,shutil
+class apkjni(Task.Task):
+	color = 'YELLOW'
+	compresslevel = 0
+	jnifiles = {}
+
+	def runnable_status(self):
+		"""
+		Waits for dependent tasks to be complete, then read the file system to find the input nodes.
+		"""
+		for t in self.run_after:
+			if not t.hasrun:
+				return Task.ASK_LATER
+		return super(apkjni, self).runnable_status()
+
+	def __str__(self):
+		tgt_str = ' '.join([a.path_from(a.ctx.launch_node()) for a in self.outputs])
+		count = len(self.inputs)
+		return '%s: %d files -> %s' % (self.__class__.__name__, count, tgt_str)
+
+	def keyword(self):
+		return 'Creating'
+
+	def run(self):
+		outfile = self.outputs[0].path_from(self.outputs[0].ctx.launch_node())
+		comp = zipfile.ZIP_STORED if self.compresslevel == 0 else zipfile.ZIP_DEFLATED
+		add = []
+
+		shutil.copy2(self.inputs[0].abspath(), self.outputs[0].abspath())
+
+		with zipfile.ZipFile(outfile, mode='a', compression=comp) as zf:
+		
+			for src in self.inputs[1:]:
+				infile  = src.path_from(src.ctx.launch_node())
+				if src in self.jnifiles: # allow generator to specify names
+					arcfile = self.jnifiles[src]
+				else:
+					arcfile = 'lib/' + src.path_from(src.parent.parent) # if libraries already in lib/$arch
+				
+				if arcfile in add: # skip duplicates
+					continue
+				add.append(arcfile)
+
+				Logs.debug('%s: %s <- %s as %s', self.__class__.__name__, outfile, infile, arcfile)
+				zf.write(infile, arcfile)
+
+
 
 class apkdex(Task.Task):
 	color = 'GREEN' # android green :)
@@ -248,8 +296,8 @@ def apply_aapt(self):
 	self.env.MANIFEST = os.path.join(srcdir.abspath(), getattr(self, 'manifest', 'AndroidManifest.xml'))
 
 	try:
-		self.env.JNIDIR = self.jni
-		self.env.JNIROOT = self.jniroot
+		self.env.JNINODES = self.jni
+		self.env.JNIFILES = self.jnifiles
 	except AttributeError:
 		pass
 
@@ -258,10 +306,10 @@ def apply_aapt(self):
 	self.env.OUTAPK_UNALIGNED = self.name + '.unaligned.apk'
 	self.env.OUTAPK_UNALIGNED_NOCLASSES = self.name + '.unaligned.noclasses.apk'
 
-	if self.env.JNIDIR:
-		self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI = self.name + '.unaligned.noclasses.nojni.apk'
-	else:
-		self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI = self.env.OUTAPK_UNALIGNED_NOCLASSES
+#	if self.env.JNIDIR:
+	self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI = self.name + '.unaligned.noclasses.nojni.apk'
+#	else:
+#		self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI = self.env.OUTAPK_UNALIGNED_NOCLASSES
 
 	if self.env.BUILD_TOOLS_VERSION[0] > 27:
 		self.env.append_unique('AAPT2_LINKFLAGS', '--allow-reserved-package-id')
@@ -297,12 +345,16 @@ def apply_d8(self):
 		tgt=self.outdir.make_node('classes.dex'),
 		cwd=self.outdir)
 	self.d8_task.set_run_after(self.javac_task) # we don't know javac outputs
+	
+	jnisrc = [self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI)]
+	if self.env.JNINODES:
+		jnisrc += self.env.JNINODES
 
-	if self.env.JNIDIR:
-		self.apkjni_task = self.create_task('apkjni',
-			src=self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES_NOJNI),
-			tgt=self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES),
-			cwd=self.outdir)
+	self.apkjni_task = self.create_task('apkjni',
+		jnisrc, self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES),
+		cwd=self.outdir)
+	if self.env.JNIFILES:
+		self.apkjni_task.jnifiles.update(self.env.JNIFILES)
 
 	self.apkdex_task = self.create_task('apkdex',
 		[self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES), self.d8_task.outputs[0]],
