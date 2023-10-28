@@ -264,7 +264,7 @@ public class FWGSLib
 		{
 			if( decorView == null )
 				return;
-			if( keyboardVisible )
+			if( !keyboardVisible )
 				decorView.setSystemUiVisibility(
 					0x00000100   // View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 					| 0x00000200 // View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -317,8 +317,10 @@ public class FWGSLib
 		int sdk1 = Integer.valueOf(Build.VERSION.SDK);
 		if(  sdk1 >= 26 )
 			cmp = new Compat_26();
-		if(  sdk1 >= 23 )
+		else if(  sdk1 >= 23 )
 			cmp = new Compat_23();
+		else if(  sdk1 >= 19 )
+			cmp = new Compat_19();
 		else if( sdk1 >= 9 )
 			cmp = new Compat_9();
 		else cmp = new Compat();

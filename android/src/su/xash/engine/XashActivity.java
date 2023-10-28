@@ -145,7 +145,13 @@ public class XashActivity extends Activity {
 
 		// fullscreen
 		requestWindowFeature( Window.FEATURE_NO_TITLE );
-		final int FLAG_NEEDS_MENU_KEY = 0x08000000;
+		// this value was reused in 19+, so try get it in runtime
+		int FLAG_NEEDS_MENU_KEY = 0;
+		try
+		{
+			FLAG_NEEDS_MENU_KEY = WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null);
+		}
+		catch(Exception e){}
 		
 		int flags = WindowManager.LayoutParams.FLAG_FULLSCREEN | 
 			WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | FLAG_NEEDS_MENU_KEY;
@@ -184,6 +190,8 @@ public class XashActivity extends Activity {
 			String basedir = FWGSLib.getStringExtraFromIntent( getIntent(), "basedir", mPref.getString( "basedir", "/sdcard/xash/" ) );
 			checkWritePermission( basedir );
 		}
+		if( XashActivity.mPref.getBoolean( "immersive_mode", false ) )
+			mDecorView = getWindow().getDecorView();
 	}
 
 	public void onRequestPermissionsResult( int requestCode,  String[] permissions,  int[] grantResults )
@@ -459,8 +467,6 @@ public class XashActivity extends Activity {
 		mUseVolume = mPref.getBoolean( "usevolume", false );
 		if( mPref.getBoolean( "enableResizeWorkaround", true ) )
 			AndroidBug5497Workaround.assistActivity( this );
-		if( XashActivity.mPref.getBoolean( "immersive_mode", false ) )
-			mDecorView = getWindow().getDecorView();
 
 		if( mPref.getBoolean( "resolution_fixed", false ) )
 		{
