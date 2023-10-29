@@ -136,7 +136,7 @@ public class FWGSLib
 
 				f.mkdirs();
 
-		 		externalFilesDir = f.getAbsolutePath();
+				externalFilesDir = f.getAbsolutePath();
 				Log.d(TAG, "getExternalFilesDir success");
 			}
 			catch( Exception e )
@@ -199,7 +199,7 @@ public class FWGSLib
 				
 				if( child == null )
 					continue;
-				
+
 				if( child instanceof ViewGroup )
 				{
 					changeButtonsStyle((ViewGroup) child);
@@ -238,6 +238,10 @@ public class FWGSLib
 		{
 			return ctx.getFilesDir().getParentFile().getPath() + "/lib";
 		}
+		public Surface getDummySurface( Context ctx )
+		{
+			return null; // it is only possible to get valid surface from XashService, but it's too complex to implement
+		}
 	}
 	
 	static class Compat_9 extends Compat
@@ -258,7 +262,22 @@ public class FWGSLib
 
 	}
 
-	static class Compat_19 extends Compat_9
+	static class Compat_11 extends Compat_9
+	{
+		private SurfaceTexture mDummySurface = null;
+
+		public Surface getDummySurface( Context ctx )
+		{
+			if( mDummySurface == null )
+			{
+				mDummySurface = new SurfaceTexture( false );
+			}
+			return new Surface( mDummySurface );
+		}
+
+	}
+
+	static class Compat_19 extends Compat_11
 	{
 		public void applyImmersiveMode( boolean keyboardVisible, View decorView )
 		{
@@ -321,6 +340,8 @@ public class FWGSLib
 			cmp = new Compat_23();
 		else if(  sdk1 >= 19 )
 			cmp = new Compat_19();
+		else if(  sdk1 >= 11 )
+			cmp = new Compat_11();
 		else if( sdk1 >= 9 )
 			cmp = new Compat_9();
 		else cmp = new Compat();
@@ -333,7 +354,7 @@ public class FWGSLib
 		if( pkgName == null )
 			pkgName = ctx.getPackageName();
 		
-		return pm.getApplicationInfo(pkgName, flags);		
+		return pm.getApplicationInfo(pkgName, flags);
 	}
 	
 	public static final int sdk = Integer.valueOf(Build.VERSION.SDK);

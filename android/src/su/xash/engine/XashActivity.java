@@ -638,14 +638,14 @@ public class XashActivity extends Activity {
 		mSurface.SwapBuffers();
 	}
 	
-	public static void engineThreadNotify() 
+	public static void engineThreadNotify()
 	{
 		mSurface.engineThreadNotify();
 	}
 	
-	public static Surface getNativeSurface() 
+	public static Surface getNativeSurface( int type )
 	{
-		return XashActivity.mSurface.getNativeSurface();
+		return XashActivity.mSurface.getNativeSurface( type );
 	}
 	
 	public static void vibrate( int time ) 
@@ -1072,7 +1072,9 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	private EGL10 mEGL;
 	private EGLConfig mEGLConfig;
 	private boolean resizing = false;
-
+	private final static int surface_pause = 0;
+	private final static int surface_active = 1;
+	private final static int surface_dummy = 2;
 	// Sensors
 
 	// Startup
@@ -1208,11 +1210,17 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	public void onDraw( Canvas canvas )
 	{
 	}
-	
+
 	// first, initialize native backend
-	public Surface getNativeSurface() 
+	public Surface getNativeSurface( int type )
 	{
-		return getHolder().getSurface();
+		if( type == surface_active )
+			return getHolder().getSurface();
+		else if( type == surface_dummy )
+		{
+			return FWGSLib.cmp.getDummySurface( getContext() );
+		}
+		return null;
 	}
 	
 	public int getGLAttribute( final int attr )
@@ -1335,19 +1343,45 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	
 	public void toggleEGL( int toggle )
 	{
-	    Log.v( TAG, "toggleEGL " + toggle );
-	   if( toggle != 0 )
-	   {
-			if( mEGLSurface == null )
-				mEGLSurface = mEGL.eglCreateWindowSurface( mEGLDisplay, mEGLConfig, this, null );
-			mEGL.eglMakeCurrent( mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext );
-	   }
-	   else
-	   {
-			mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, mEGLContext );
+		Log.v( TAG, "toggleEGL "+ toggle );
+
+		if( mEGLSurface != null )
+		{
+			mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT );
 			mEGL.eglDestroySurface( mEGLDisplay, mEGLSurface );
 			mEGLSurface = null;
-	   }
+		}
+		if( toggle == surface_active )
+		{
+			mEGLSurface = mEGL.eglCreateWindowSurface( mEGLDisplay, mEGLConfig, this, null );
+			mEGL.eglMakeCurrent( mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext );
+		}
+		else if( toggle == surface_dummy ) // only used with android_sleep=0
+		{
+			try
+			{ // first, check if surfaceless context allowed
+			   if( mEGL.eglQueryString( mEGLDisplay, EGL10.EGL_EXTENSIONS ).contains( "EGL_KHR_surfaceless_context" )
+			   &&  mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, mEGLContext ))
+					return;
+			}
+			catch( Exception e ) { e.printStackTrace(); }
+			try
+			{ // if no or it failed, try use dummy SurfaceTexture
+				Surface o = FWGSLib.cmp.getDummySurface( getContext() );
+				mEGLSurface = mEGL.eglCreateWindowSurface( mEGLDisplay, mEGLConfig, o, null );
+				if(!mEGL.eglMakeCurrent( mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext ) )
+					throw new Exception("MakeCurrent failed");
+			}
+			catch( Exception e2 )
+			{
+				e2.printStackTrace();
+				try
+				{ // last try, surfaceless without ext, it will be broken anyway
+					mEGL.eglMakeCurrent( mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, mEGLContext );
+				}
+				catch( Exception e3 ) { e3.printStackTrace(); }
+			}
+		}
 	}
 	
 	public void ShutdownGL()
