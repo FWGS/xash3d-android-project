@@ -10,7 +10,7 @@ def options(opt):
 	return
 
 def configure(conf):
-	conf.load('android', os.path.join(str(conf.path), '../scripts/waifulib'))
+	conf.load('android')
 	conf.env.D8_DEBUG = conf.options.BUILD_TYPE != 'release'
 	# conf.load('java')
 	return
@@ -64,7 +64,8 @@ def build(bld):
 			libs.clear()
 
 	# force post all shlibs after processing decorators to make all nodes registered
-	for t in tgens:
-		bld.get_tgen_by_name(t).post()
-	tsk.post()
+	if not bld.targets:
+		for t in tgens:
+			bld.get_tgen_by_name(t).post()
+		tsk.post()
 
