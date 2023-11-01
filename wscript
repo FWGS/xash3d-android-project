@@ -64,11 +64,11 @@ def configure(conf):
 	conf.start_msg('Build type')
 	if conf.options.BUILD_TYPE == None:
 		conf.end_msg('not set', color='RED')
-		conf.fatal('Please set a build type, for example "--build-type=release"')
-	elif not conf.options.BUILD_TYPE in ['release', 'debug', 'none']:
-		conf.end_msg(conf.options.BUILD_TYPE, color='RED')
-		conf.fatal('Invalid build type. Valid are "debug", "release" or "none"')
-	conf.end_msg(conf.options.BUILD_TYPE)
+#		conf.fatal('Please set a build type, for example "--build-type=release"')
+#	elif not conf.options.BUILD_TYPE in ['release', 'debug', 'none']:
+#		conf.end_msg(conf.options.BUILD_TYPE, color='RED')
+#		conf.fatal('Invalid build type. Valid are "debug", "release" or "none"')
+#	conf.end_msg(conf.options.BUILD_TYPE)
 
 	# skip some subdirectories, if requested
 	if conf.options.SKIP_SUBDIRS:
