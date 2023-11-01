@@ -12,15 +12,9 @@ def options(opt):
 def configure(conf):
 	conf.load('android')
 	conf.env.D8_DEBUG = conf.options.BUILD_TYPE != 'release'
+	conf.find_program('objcopy')
 	# conf.load('java')
 	return
-
-from waflib import Task
-
-class copylibs(Task.Task):
-	color = 'GREEN'
-	run_str = '${CP} ${SRC} ${TGT}'
-	ext_in  = ['.so']
 
 from waflib import TaskGen, Task, Build
 
@@ -28,6 +22,11 @@ from waflib import TaskGen, Task, Build
 libs = []
 tgens = []
 jnifiles = {}
+
+class strip_task(Task.Task):
+	run_str = '${OBJCOPY} -g ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	def keyworf(self):
+		return 'Stripping'
 
 def build(bld):
 	jni_dir = bld.root.get_bld().parent.make_node('lib')
@@ -45,7 +44,11 @@ def build(bld):
 	@TaskGen.after_method('apply_android_soname')
 	def copy_lib(self):
 		lib = self.link_task.outputs[0]
-		link_task =  self.link_task
+		strip_output = lib.parent.make_node('lib' + self.name + '.stripped.so')
+		self.strip_task = self.create_task('strip_task', lib, strip_output)
+#		link_task =  self.link_task
+		link_task = self.strip_task
+		lib = strip_output
 		libs.append(lib)
 		tgens.append(self.name)
 		jnifiles[lib] = self.install_path + '/lib' + self.name + '.so'
