@@ -273,7 +273,9 @@ class apksigner_termux(SignerTask):
 	run_str = '${APKSIGNER} ${KEYSTORE} ${SRC} ${TGT}'
 
 class jarsigner(SignerTask):
-	run_str = '${JARSIGNER} -keystore ${KEYSTORE} -storepass ${KS_PASS} -keypass ${KEY_PASS} -signedjar ${TGT} ${SRC} ${KS_ALIAS}'
+	run_str = '${JARSIGNER} -sigalg SHA1withRSA -digestalg SHA1 -keystore ${KEYSTORE} -storepass ${KS_PASS} -keypass ${KEY_PASS} -signedjar ${TGT} ${SRC} ${KS_ALIAS}'
+	def keyword(self):
+		return 'Signing'
 
 @TaskGen.feature('android')
 @TaskGen.before_method('apply_java')
