@@ -25,7 +25,7 @@ jnifiles = {}
 
 class strip_task(Task.Task):
 	run_str = '${OBJCOPY} -g ${SRC[0].abspath()} ${TGT[0].abspath()}'
-	def keyworf(self):
+	def keyword(self):
 		return 'Stripping'
 
 def build(bld):
