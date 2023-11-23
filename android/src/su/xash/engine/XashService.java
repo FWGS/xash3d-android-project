@@ -63,6 +63,8 @@ public class XashService extends Service
 			XashActivity.mSurface.engineThreadJoin();
 		System.exit(0);
 	}
+
+	void startAction(Intent intent){}
 	
 	public static class ExitButtonListener extends BroadcastReceiver 
 	{
@@ -79,6 +81,7 @@ public class XashService extends Service
 		Log.d("XashService", "Service Started (compat)");
 		not = XashNotification.getXashNotification();
 		not.createNotification(this, getNotificationIntent(), getExitIntent());
+		startAction(intent);
 	}
 	
 	@Override
@@ -90,6 +93,7 @@ public class XashService extends Service
 		
 		//startForeground();
 		FWGSLib.cmp.startForeground(this,not.getId(), not.createNotification(this, getNotificationIntent(), getExitIntent()));
+		startAction(intent);
 		
 		return START_NOT_STICKY;
 	}

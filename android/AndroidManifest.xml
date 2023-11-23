@@ -81,6 +81,7 @@
 				<data android:scheme="package" />
 			</intent-filter>
 		</receiver>
+		<service android:name="su.xash.engine.DebugService" android:stopWithTask="false" android:process=":tracer" />
 		<!--<service android:name="su.xash.engine.SteamService" />-->
 		<meta-data android:name="android.max_aspect" android:value="10000.0" />
 		<meta-data android:name="android.allow_multiple_resumed_activities" android:value="true" /> <!-- don't pause engine on foldables -->

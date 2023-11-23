@@ -493,7 +493,10 @@ public class XashActivity extends Activity {
 				}
 			}
 		}
-		FWGSLib.cmp.startForegroundService( this, new Intent( getBaseContext(), XashService.class ) );
+		//FWGSLib.cmp.startForegroundService( this, new Intent( getBaseContext(), XashService.class ) );
+		Intent debugIntent = new Intent( getBaseContext(), DebugService.class );
+		debugIntent.putExtra("PID", String.valueOf(android.os.Process.myPid()));
+		FWGSLib.cmp.startForegroundService( this, debugIntent );
 
 		mEngineReady = true;
 	}
@@ -973,11 +976,18 @@ public class XashActivity extends Activity {
 	public static void setTitle( String title )
 	{
 		Log.v( TAG, "setTitle(" + title + ")" );
-		SharedPreferences.Editor editor = mPref.edit();
-		editor.putBoolean("successfulRun", true);
-		editor.commit();
-		
-		XashService.not.setText(title);
+		try
+		{
+			SharedPreferences.Editor editor = mPref.edit();
+			editor.putBoolean("successfulRun", true);
+			editor.commit();
+			
+			XashService.not.setText(title);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public static String getAndroidID()
