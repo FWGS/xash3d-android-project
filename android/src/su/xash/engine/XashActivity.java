@@ -952,8 +952,6 @@ public class XashActivity extends Activity {
 			return;
 		
 		Log.v( TAG, "setIcon(" + path + ")" );
-		if( sdk < 5 )
-			return;
 		
 		try
 		{
@@ -978,9 +976,6 @@ public class XashActivity extends Activity {
 		SharedPreferences.Editor editor = mPref.edit();
 		editor.putBoolean("successfulRun", true);
 		editor.commit();
-		
-		if( sdk < 5 )
-			return;
 		
 		XashService.not.setText(title);
 	}

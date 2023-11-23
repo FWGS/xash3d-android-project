@@ -233,7 +233,8 @@ public class FWGSLib
 	{
 		public void applyPermissions( final Activity act, final String permissions[], final int code ) {}
 		public void applyImmersiveMode( boolean keyboardVisible, View decorView ) {}
-		public void startForegroundService( Context ctx, Intent intent ) {}
+		public void startForegroundService( Context ctx, Intent intent ) {ctx.startService( intent );}
+		public void startForeground( Service service, int notid, Notification notification ) {}
 		public String getNativeLibDir(Context ctx)
 		{
 			return ctx.getFilesDir().getParentFile().getPath() + "/lib";
@@ -256,8 +257,8 @@ public class FWGSLib
 				return super.getNativeLibDir(ctx);
 			}
 		}
-		public void startForegroundService( Context ctx,  Intent intent ) {
-			ctx.startService( intent );
+		public void startForeground( Service service, int notid, Notification notification ) {
+			service.startForeground(notid, notification);
 		}
 
 	}

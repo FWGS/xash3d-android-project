@@ -32,9 +32,9 @@ import java.security.MessageDigest;
 
 import su.xash.engine.R;
 import su.xash.engine.XashConfig;
+import su.xash.fwgslib.*;
 
-
-public class XashService extends Service 
+public class XashService extends Service
 {
 	public static XashNotification not;
 
@@ -43,19 +43,42 @@ public class XashService extends Service
 	{
 		return null;
 	}
+	public Intent getNotificationIntent()
+	{
+		Intent r = new Intent(this, XashActivity.class);
+		r.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		return r;
+	}
+	public Intent getExitIntent()
+	{
+		return new Intent(this, ExitButtonListener.class);
+	}
+	
+	public static void exitAction()
+	{
+		XashActivity.mEngineReady = false;
+		XashActivity.nativeUnPause();
+		XashActivity.nativeOnDestroy();
+		if( XashActivity.mSurface != null )
+			XashActivity.mSurface.engineThreadJoin();
+		System.exit(0);
+	}
 	
 	public static class ExitButtonListener extends BroadcastReceiver 
 	{
 		@Override
 		public void onReceive(Context context, Intent intent) 
 		{
-			XashActivity.mEngineReady = false;
-			XashActivity.nativeUnPause();
-			XashActivity.nativeOnDestroy();
-			if( XashActivity.mSurface != null )
-				XashActivity.mSurface.engineThreadJoin();
-			System.exit(0);
+			XashService.exitAction();
 		}
+	}
+	@Override
+	public void onStart (Intent intent, 
+                int startId)
+	{
+		Log.d("XashService", "Service Started (compat)");
+		not = XashNotification.getXashNotification();
+		not.createNotification(this, getNotificationIntent(), getExitIntent());
 	}
 	
 	@Override
@@ -65,7 +88,8 @@ public class XashService extends Service
 		
 		not = XashNotification.getXashNotification();
 		
-		startForeground(not.getId(), not.createNotification(this));
+		//startForeground();
+		FWGSLib.cmp.startForeground(this,not.getId(), not.createNotification(this, getNotificationIntent(), getExitIntent()));
 		
 		return START_NOT_STICKY;
 	}
@@ -86,15 +110,7 @@ public class XashService extends Service
 	public void onTaskRemoved(Intent rootIntent) 
 	{
 		Log.e("XashService", "OnTaskRemoved");
-		//if( XashActivity.mEngineReady )
-		{
-			XashActivity.mEngineReady = false;
-			XashActivity.nativeUnPause();
-			XashActivity.nativeOnDestroy();
-			if( XashActivity.mSurface != null )
-				XashActivity.mSurface.engineThreadJoin();
-			System.exit(0);
-		}
+		exitAction();
 		stopSelf();
 	}
 
@@ -104,13 +120,10 @@ public class XashService extends Service
 		public final int notificationId = 100;
 		protected Context ctx;
 	
-		public Notification createNotification(Context context)
+		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent)
 		{
 			ctx = context;
-			Intent engineIntent = new Intent(ctx, XashActivity.class);
-			engineIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
-			Intent exitIntent = new Intent(ctx, ExitButtonListener.class);
 			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, 0);
 
 			notification = new Notification(R.drawable.ic_statusbar, ctx.getString(R.string.app_name), System.currentTimeMillis());
@@ -161,13 +174,10 @@ public class XashService extends Service
 		protected Notification.Builder builder;
 		
 		@Override
-		public Notification createNotification(Context context)
+		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent)
 		{
 			ctx = context;
-			Intent engineIntent = new Intent(ctx, XashActivity.class);
-			engineIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
-			Intent exitIntent = new Intent(ctx, ExitButtonListener.class);
 			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, 0);
 
 			if(builder == null)
@@ -230,7 +240,7 @@ public class XashService extends Service
 		}
 		
 		@Override
-		public Notification createNotification(Context context)
+		public Notification createNotification(Context context, Intent mainIntent, Intent exitIntent)
 		{
 			ctx = context;
 			createNotificationChannel();
@@ -238,7 +248,7 @@ public class XashService extends Service
 			builder = new Notification.Builder(ctx);
 			builder.setChannelId(CHANNEL_ID);
 			
-			return super.createNotification(ctx);
+			return super.createNotification(ctx, mainIntent, exitIntent);
 		}
 	}
 };
