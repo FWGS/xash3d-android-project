@@ -33,6 +33,7 @@ import android.view.inputmethod.InputConnection;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import android.view.inputmethod.InputMethodManager;
 
 
 /**
@@ -2397,6 +2398,11 @@ public class TermView extends View {
 		{
 			mSelecting = false;	
 			mDeltaSelect = 0;
+			setFocusable(true);
+			setFocusableInTouchMode(true);
+			requestFocus();
+			InputMethodManager imm = ( InputMethodManager )getContext().getSystemService( Context.INPUT_METHOD_SERVICE );
+			imm.showSoftInput(this, 0 );
 		}
 		return true;
 	}
