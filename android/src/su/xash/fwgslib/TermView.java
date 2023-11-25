@@ -2107,7 +2107,24 @@ public class TermView extends View {
 			return true;
 		}
 		if(!down) return true;
-		sendChar(keyCode);
+		int c = event.getKeyCode();
+		if(c == KeyEvent.KEYCODE_ENTER)
+		{
+			sendText("\r");
+			return true;
+		}
+		else if( c == KeyEvent.KEYCODE_DEL )
+		{
+			sendChar(127);
+			return true;
+		}
+		//sendChar(keyCode);
+		int ch = event.getUnicodeChar();
+		char[] ch1 = Character.toChars(ch);
+		byte[] ch2 = new String(ch1).getBytes();
+
+		write(ch2,ch2.length);
+
 
 		// Translate the keyCode into an ASCII character.
 		/*int letter = mKeyListener.keyDown(keyCode, event);
@@ -2122,6 +2139,20 @@ public class TermView extends View {
 			//}
 		}*/
 		return true;
+	}
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+		Log.d("key", "c="+keyCode+" c1="+event.getKeyCode());
+		return handleKey(event);
+
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+
+		return handleKey(event);
+
 	}
 
 	/**
