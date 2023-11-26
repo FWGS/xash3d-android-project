@@ -454,14 +454,16 @@ class TranscriptScreen {
 		char[] rowBuffer = mRowBuffer;
 		char[] data = mData;
 		int columns = mColumns;
-		for (int row = mSelectStartY; row <= mSelectEndY; row++) {
+		int startrow = -mActiveTranscriptRows + mSelectStartY;
+		int endrow = -mActiveTranscriptRows + mSelectEndY;
+		for (int row = startrow; row <= endrow; row++) {
 			int offset = getOffset(row);
 			int lastPrintingChar = -1;
 			int startcol = 0;
 			int endcol = columns - 1;
-			if(row == mSelectStartY)
+			if(row == startrow)
 				startcol = mSelectStartX;
-			if(row == mSelectEndY)
+			if(row == endrow)
 				endcol = mSelectEndX;
 			for (int column = startcol; column <= endcol; column++) {
 				char c = data[offset + column];
@@ -2161,7 +2163,7 @@ public class TermView extends View {
 	* @param keyCode
 	* @param down
 	*/
-	private boolean handleDPad(int keyCode, boolean down) {
+	public boolean handleDPad(int keyCode, boolean down) {
 		if (keyCode < KeyEvent.KEYCODE_DPAD_UP ||
 				keyCode > KeyEvent.KEYCODE_DPAD_CENTER) {
 			return false;
@@ -2224,7 +2226,7 @@ public class TermView extends View {
 
 		}
 	}
-	private void sendText(CharSequence text) {
+	public void sendText(CharSequence text) {
 		int n = text.length();
 		try {
 			for(int i = 0; i < n; i++) {
@@ -2572,4 +2574,9 @@ public class TermView extends View {
 			}
 		}
 	}
+	public String getSelectedText(boolean strip)
+	{
+		return mTranscriptScreen.getSelectedText(strip);
+	}
+
 }
