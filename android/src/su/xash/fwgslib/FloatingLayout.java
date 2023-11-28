@@ -7,7 +7,10 @@ import android.widget.LinearLayout;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.util.Log;
-
+import android.net.Uri;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 
 public class FloatingLayout extends LinearLayout
 {
@@ -18,13 +21,37 @@ public class FloatingLayout extends LinearLayout
 		super(ctx);
 		if(gWindowManager == null)
 			gWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-		mParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_PHONE, 0, PixelFormat.OPAQUE);
+		mParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, FWGSLib.sdk >= 23?WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY:WindowManager.LayoutParams.TYPE_PHONE, 0, PixelFormat.OPAQUE);
 		mParams.gravity = Gravity.LEFT | Gravity.TOP;
 		mParams.x = 10;
 		mParams.y = 20;
 		mParams.height = 240;
 		mParams.width = 240;
-		gWindowManager.addView(this, mParams);
+		try{
+			gWindowManager.addView(this, mParams);
+		}
+		catch(Exception e)
+		{
+			if (FWGSLib.sdk >= 23)
+			{
+				Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION",
+                Uri.parse("package:" + getContext().getPackageName()));
+				getContext().startActivity(intent);
+				final Handler handler = new Handler(Looper.getMainLooper());
+				handler.postDelayed(new Runnable(){
+					public void run() {
+						try{
+							gWindowManager.addView(FloatingLayout.this, mParams);
+						}
+						catch(Exception e)
+						{
+							handler.postDelayed(this, 2000);
+						}
+					}
+				}, 8000);
+			}
+
+		}
 	}
 	private int mX, mY, mX1, mY1;
 	private int mLX, mLY;

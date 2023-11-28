@@ -168,9 +168,9 @@ public class XashService extends Service
 		
 		public static XashNotification getXashNotification()
 		{
-			if( XashActivity.sdk >= 26 )
+			if( FWGSLib.sdk >= 26 )
 				return new XashNotification_v26();
-			else  if( XashActivity.sdk >= 23 )
+			else  if( FWGSLib.sdk >= 23 )
 				return new XashNotification_v23();
 			else
 				return new XashNotification();
