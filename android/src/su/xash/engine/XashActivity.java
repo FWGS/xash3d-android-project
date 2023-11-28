@@ -493,7 +493,7 @@ public class XashActivity extends Activity {
 				}
 			}
 		}
-		//FWGSLib.cmp.startForegroundService( this, new Intent( getBaseContext(), XashService.class ) );
+		FWGSLib.cmp.startForegroundService( this, new Intent( getBaseContext(), XashService.class ) );
 		Intent debugIntent = new Intent( getBaseContext(), DebugService.class );
 		debugIntent.putExtra("PID", android.os.Process.myPid());
 		FWGSLib.cmp.startForegroundService( this, debugIntent );

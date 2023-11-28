@@ -53,6 +53,10 @@ public class XashService extends Service
 	{
 		return new Intent(this, ExitButtonListener.class);
 	}
+	public int getExtraId()
+	{
+		return 0;
+	}
 	
 	public static void exitAction()
 	{
@@ -80,7 +84,7 @@ public class XashService extends Service
 	{
 		Log.d("XashService", "Service Started (compat)");
 		not = XashNotification.getXashNotification();
-		not.createNotification(this, getNotificationIntent(), getExitIntent());
+		not.createNotification(this, getNotificationIntent(), getExitIntent(), getExtraId());
 		startAction(intent);
 	}
 	
@@ -92,7 +96,7 @@ public class XashService extends Service
 		not = XashNotification.getXashNotification();
 		
 		//startForeground();
-		FWGSLib.cmp.startForeground(this,not.getId(), not.createNotification(this, getNotificationIntent(), getExitIntent()));
+		FWGSLib.cmp.startForeground(this,not.getId(), not.createNotification(this, getNotificationIntent(), getExitIntent(), getExtraId()));
 		startAction(intent);
 		
 		return START_NOT_STICKY;
@@ -121,12 +125,13 @@ public class XashService extends Service
 	public static class XashNotification
 	{
 		public Notification notification;
-		public final int notificationId = 100;
+		public int notificationId = 100;
 		protected Context ctx;
 	
-		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent)
+		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent, int extraId)
 		{
 			ctx = context;
+			notificationId += extraId;
 
 			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, 0);
 
@@ -178,9 +183,10 @@ public class XashService extends Service
 		protected Notification.Builder builder;
 		
 		@Override
-		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent)
+		public Notification createNotification(Context context, Intent engineIntent, Intent exitIntent, int extraId)
 		{
 			ctx = context;
+			notificationId += extraId;
 
 			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, 0);
 
@@ -219,7 +225,7 @@ public class XashService extends Service
 
 	private static class XashNotification_v26 extends XashNotification_v23
 	{
-		private static final String CHANNEL_ID = "XashServiceChannel";
+		private String CHANNEL_ID = "XashServiceChannel";
 	
 		private void createNotificationChannel()
 		{
@@ -244,15 +250,16 @@ public class XashService extends Service
 		}
 		
 		@Override
-		public Notification createNotification(Context context, Intent mainIntent, Intent exitIntent)
+		public Notification createNotification(Context context, Intent mainIntent, Intent exitIntent, int extraId)
 		{
+			CHANNEL_ID = CHANNEL_ID + extraId;
 			ctx = context;
 			createNotificationChannel();
 		
 			builder = new Notification.Builder(ctx);
 			builder.setChannelId(CHANNEL_ID);
 			
-			return super.createNotification(ctx, mainIntent, exitIntent);
+			return super.createNotification(ctx, mainIntent, exitIntent, extraId);
 		}
 	}
 };

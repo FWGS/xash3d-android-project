@@ -16,8 +16,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
 
-
-
 public class DebugService extends XashService
 {
 	private TermView mTermView;
@@ -35,9 +33,10 @@ public class DebugService extends XashService
 	{
 		return new Intent(this, ExitButtonListener.class);
 	}
-	private void createLayout()
+
+	public int getExtraId()
 	{
-		
+		return 1;
 	}
 
 	@Override
