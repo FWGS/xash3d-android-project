@@ -453,7 +453,6 @@ public class XashActivity extends Activity {
 		mUseVolume = mPref.getBoolean( "usevolume", false );
 		if( mPref.getBoolean( "enableResizeWorkaround", true ) )
 		{
-			//new KeyboardWorkaround(this);
 			new AndroidBug5497Workaround(this)
 			{
 				@Override
@@ -462,6 +461,11 @@ public class XashActivity extends Activity {
 					XashActivity.keyboardVisible = visible;
 					FWGSLib.cmp.applyImmersiveMode( XashActivity.keyboardVisible, XashActivity.mDecorView );
 					FWGSLib.enableNavbarMenu(XashActivity.mSingleton);
+					if( mSurface.mResizeEnabled )
+					{
+						mSurface.getHolder().setSizeFromLayout();
+						mSurface.setSurfaceSize( mSurface.getHolder(), mSurface.getWidth(), heightUsable + heightDiff/2 );
+					}
 				}
 			};
 
@@ -1075,10 +1079,11 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 	private EGLDisplay  mEGLDisplay;
 	private EGL10 mEGL;
 	private EGLConfig mEGLConfig;
-	private boolean resizing = false;
 	private final static int surface_pause = 0;
 	private final static int surface_active = 1;
 	private final static int surface_dummy = 2;
+	private int mEngineWidth = 640, mEngineHeight = 480;
+	public boolean mResizeEnabled = false;
 	// Sensors
 
 	// Startup
@@ -1120,15 +1125,13 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 		engineThreadWait();
 	}
 
-	// Called when the surface is resized
-	public void surfaceChanged( SurfaceHolder holder, int format, int width, int height )
+	// calculate surface size and configure holder
+	public void setSurfaceSize( SurfaceHolder holder, int width, int height )
 	{
-		Log.v( TAG, "surfaceChanged(" + width + ","+ height+")" ); 
-/*
-		if( ( XashActivity.mForceHeight!= 0 && XashActivity.mForceWidth!= 0 || XashActivity.mScale != 0 ) && !resizing )
+		if( ( XashActivity.mForceHeight!= 0 && XashActivity.mForceWidth!= 0 || XashActivity.mScale != 0 ) )
 		{
 			int newWidth, newHeight;
-			resizing = true;
+
 			if( XashActivity.mForceHeight != 0 && XashActivity.mForceWidth != 0 )
 			{
 				newWidth = XashActivity.mForceWidth;
@@ -1136,22 +1139,37 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 			}
 			else
 			{
-				newWidth = ( int )( getWidth() / XashActivity.mScale );
-				newHeight = ( int )( getHeight() / XashActivity.mScale );
+				newWidth = ( int )( width / XashActivity.mScale );
+				newHeight = ( int )( height / XashActivity.mScale );
 			}
-			holder.setFixedSize( newWidth, newHeight );
-			XashActivity.mTouchScaleX = ( float )newWidth / getWidth();
-			XashActivity.mTouchScaleY = ( float )newHeight / getHeight();
+			//holder.setFixedSize( newWidth, newHeight );
+			XashActivity.mTouchScaleX = ( float )newWidth / width;
+			XashActivity.mTouchScaleY = ( float )newHeight / height;
 			
 			width = newWidth;
 			height = newHeight;
-		}*/
-
+			mResizeEnabled = true;
+		}
 		// Android may force only-landscape app to portait during lock
 		// Just don't notify engine in that case
 		if( width > height )
-			XashActivity.onNativeResize( width, height );
-		// holder.setFixedSize( width / 2, height / 2 );
+		{
+			mEngineWidth = width;
+			mEngineHeight = height;
+			if( mResizeEnabled )
+				holder.setFixedSize( width, height );
+		}
+	}
+
+	// Called when the surface is resized
+	public void surfaceChanged( SurfaceHolder holder, int format, int width, int height )
+	{
+		Log.v( TAG, "surfaceChanged(" + width + ","+ height+")" ); 
+
+		setSurfaceSize( holder, getWidth(), getHeight() );
+
+		XashActivity.onNativeResize( mEngineWidth, mEngineHeight );
+
 		// Now start up the C app thread
 		if( mEngThread == null ) 
 		{
@@ -1164,7 +1182,6 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 			}, "EngineThread" );
 			mEngThread.start();
 		}
-		resizing = false;
 	}
 	
 	public void engineThreadJoin()
