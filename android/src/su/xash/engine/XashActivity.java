@@ -437,7 +437,7 @@ public class XashActivity extends Activity {
 			.setCancelable( false )
 			.show();		
 	}
-	
+
 	private void launchSurfaceAndEngine()
 	{
 		Log.v( TAG, "Everything is OK. Launching engine..." );
@@ -466,7 +466,19 @@ public class XashActivity extends Activity {
 		mPixelFormat = mPref.getInt( "pixelformat", 0 );
 		mUseVolume = mPref.getBoolean( "usevolume", false );
 		if( mPref.getBoolean( "enableResizeWorkaround", true ) )
-			AndroidBug5497Workaround.assistActivity( this );
+		{
+			//new KeyboardWorkaround(this);
+			new AndroidBug5497Workaround(this)
+			{
+				@Override
+				public void onKeyboardToggle(boolean visible, int heightUsable, int heightDiff)
+				{
+					XashActivity.keyboardVisible = visible;
+					FWGSLib.cmp.applyImmersiveMode( XashActivity.keyboardVisible, XashActivity.mDecorView );
+				}
+			};
+
+		}
 
 		if( mPref.getBoolean( "resolution_fixed", false ) )
 		{
@@ -1416,66 +1428,3 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 
 }
 
-class AndroidBug5497Workaround 
-{
-	// For more information, see https://code.google.com/p/android/issues/detail?id=5497
-	// To use this class, simply invoke assistActivity() on an Activity that already has its content view set.
-
-	public static void assistActivity ( Activity activity )
-	{
-		new AndroidBug5497Workaround( activity );
-	}
-
-	private View mChildOfContent;
-	private int usableHeightPrevious;
-	private FrameLayout.LayoutParams frameLayoutParams;
-
-	private AndroidBug5497Workaround( Activity activity ) 
-	{
-		FrameLayout content = ( FrameLayout )activity.findViewById( android.R.id.content );
-		mChildOfContent = content.getChildAt( 0 );
-		mChildOfContent.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener( ) 
-		{
-			public void onGlobalLayout() 
-			{
-				possiblyResizeChildOfContent();
-			}
-		});
-		frameLayoutParams = ( FrameLayout.LayoutParams )mChildOfContent.getLayoutParams();
-	}
-
-	private void possiblyResizeChildOfContent() 
-	{
-		int usableHeightNow = computeUsableHeight();
-		if( usableHeightNow != usableHeightPrevious ) 
-		{
-			int usableHeightSansKeyboard = mChildOfContent.getRootView().getHeight();
-			int heightDifference = usableHeightSansKeyboard - usableHeightNow;
-			if( heightDifference > ( usableHeightSansKeyboard / 4 ) ) 
-			{
-				// keyboard probably just became visible
-				frameLayoutParams.height = usableHeightSansKeyboard - heightDifference;
-				XashActivity.keyboardVisible = true;
-			} 
-			else 
-			{
-				// keyboard probably just became hidden
-				frameLayoutParams.height = usableHeightSansKeyboard;
-				XashActivity.keyboardVisible = false;
-			}
-			
-			FWGSLib.cmp.applyImmersiveMode( XashActivity.keyboardVisible, XashActivity.mDecorView );
-			
-			mChildOfContent.requestLayout();
-			XashActivity.mSingleton.enableNavbarMenu();
-			usableHeightPrevious = usableHeightNow;
-		}
-	}
-	
-	private int computeUsableHeight() 
-	{
-		Rect r = new Rect();
-		mChildOfContent.getWindowVisibleDisplayFrame( r );
-		return r.bottom - r.top;
-	}
-}
