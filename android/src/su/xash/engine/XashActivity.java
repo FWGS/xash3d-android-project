@@ -26,7 +26,6 @@ import android.database.*;
 import android.view.inputmethod.*;
 
 import java.lang.*;
-import java.lang.reflect.*;
 import java.util.*;
 import java.security.MessageDigest;
 
@@ -102,47 +101,9 @@ public class XashActivity extends Activity {
 	{
 		System.loadLibrary( "xash" );
 	}
-	public void enableNavbarMenu()
+
+	void configureActivity()
 	{
-		if( sdk < 21 )
-			return;
-		Window w = getWindow();
-		for (Class clazz = w.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
-			try {
-				Method method = clazz.getDeclaredMethod("setNeedsMenuKey", int.class);
-				method.setAccessible(true);
-				try {
-					method.invoke(w, 1);  // 1 == WindowManager.LayoutParams.NEEDS_MENU_SET_TRUE
-					break;
-				} catch (IllegalAccessException e) {
-					Log.d(TAG, "IllegalAccessException on window.setNeedsMenuKey");
-				} catch (java.lang.reflect.InvocationTargetException e) {
-					Log.d(TAG, "InvocationTargetException on window.setNeedsMenuKey");
-				}
-			} catch (NoSuchMethodException e) {
-				// Log.d(TAG, "NoSuchMethodException");
-			}
-		}
-	}
-
-	// Setup
-	@Override
-	protected void onCreate( Bundle savedInstanceState ) 
-	{
-		Log.v( TAG, "onCreate()" );
-		super.onCreate( savedInstanceState );
-
-		mEngineReady = false;
-		
-		if( sdk >= 8 && CertCheck.dumbAntiPDALifeCheck( this ) )
-		{
-			finish();
-			return;
-		}
-		
-		// So we can call stuff from static callbacks
-		mSingleton = this;
-
 		// fullscreen
 		requestWindowFeature( Window.FEATURE_NO_TITLE );
 		// this value was reused in 19+, so try get it in runtime
@@ -157,13 +118,17 @@ public class XashActivity extends Activity {
 			WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | FLAG_NEEDS_MENU_KEY;
 		getWindow().setFlags( flags, flags );
 
-		enableNavbarMenu();
+		FWGSLib.enableNavbarMenu(this);
 		// landscapeSensor is not supported until API9
 		if( sdk < 9 )
 			setRequestedOrientation( 0 );
-		
-		mPref = this.getSharedPreferences( "engine", 0 );
-		
+
+		if( XashActivity.mPref.getBoolean( "immersive_mode", false ) )
+			mDecorView = getWindow().getDecorView();
+	}
+
+	void setupStorage()
+	{
 		mUseRoDir = mPref.getBoolean("use_rodir", false);
 		mWriteDir = mPref.getString("writedir", FWGSLib.getExternalFilesDir( this ));
 		
@@ -190,8 +155,29 @@ public class XashActivity extends Activity {
 			String basedir = FWGSLib.getStringExtraFromIntent( getIntent(), "basedir", mPref.getString( "basedir", "/sdcard/xash/" ) );
 			checkWritePermission( basedir );
 		}
-		if( XashActivity.mPref.getBoolean( "immersive_mode", false ) )
-			mDecorView = getWindow().getDecorView();
+	}
+
+	// Setup
+	@Override
+	protected void onCreate( Bundle savedInstanceState ) 
+	{
+		Log.v( TAG, "onCreate()" );
+		super.onCreate( savedInstanceState );
+
+		mEngineReady = false;
+		
+		if( sdk >= 8 && CertCheck.dumbAntiPDALifeCheck( this ) )
+		{
+			finish();
+			return;
+		}
+
+		// So we can call stuff from static callbacks
+		mSingleton = this;
+		mPref = this.getSharedPreferences( "engine", 0 );
+
+		configureActivity();
+		setupStorage();
 	}
 
 	public void onRequestPermissionsResult( int requestCode,  String[] permissions,  int[] grantResults )
@@ -475,6 +461,7 @@ public class XashActivity extends Activity {
 				{
 					XashActivity.keyboardVisible = visible;
 					FWGSLib.cmp.applyImmersiveMode( XashActivity.keyboardVisible, XashActivity.mDecorView );
+					FWGSLib.enableNavbarMenu(XashActivity.mSingleton);
 				}
 			};
 

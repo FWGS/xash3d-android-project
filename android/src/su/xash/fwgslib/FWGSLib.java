@@ -20,6 +20,7 @@ import java.lang.*;
 import java.util.*;
 import org.json.*;
 import android.preference.*;
+import java.lang.reflect.*;
 
 /*
  * This utility class is intended to hide some Android and Java design-flaws and
@@ -225,6 +226,29 @@ public class FWGSLib
 			}
 			catch( Exception e )
 			{
+			}
+		}
+	}
+
+	public static void enableNavbarMenu(Activity act)
+	{
+		if( sdk < 21 )
+			return;
+		Window w = act.getWindow();
+		for (Class clazz = w.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+			try {
+				Method method = clazz.getDeclaredMethod("setNeedsMenuKey", int.class);
+				method.setAccessible(true);
+				try {
+					method.invoke(w, 1);  // 1 == WindowManager.LayoutParams.NEEDS_MENU_SET_TRUE
+					break;
+				} catch (IllegalAccessException e) {
+					Log.d(TAG, "IllegalAccessException on window.setNeedsMenuKey");
+				} catch (java.lang.reflect.InvocationTargetException e) {
+					Log.d(TAG, "InvocationTargetException on window.setNeedsMenuKey");
+				}
+			} catch (NoSuchMethodException e) {
+				// Log.d(TAG, "NoSuchMethodException");
 			}
 		}
 	}
