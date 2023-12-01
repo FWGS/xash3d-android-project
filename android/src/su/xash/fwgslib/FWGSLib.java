@@ -267,6 +267,9 @@ public class FWGSLib
 		{
 			return null; // it is only possible to get valid surface from XashService, but it's too complex to implement
 		}
+		public void stopForeground( Service service, int notificationBehavior )
+		{
+		}
 	}
 	
 	static class Compat_9 extends Compat
@@ -283,6 +286,10 @@ public class FWGSLib
 		}
 		public void startForeground( Service service, int notid, Notification notification ) {
 			service.startForeground(notid, notification);
+		}
+		public void stopForeground( Service service, int notificationBehavior )
+		{
+			service.stopForeground( notificationBehavior == 1 );
 		}
 
 	}
@@ -353,6 +360,10 @@ public class FWGSLib
 	{
 		public void startForegroundService(Context ctx, Intent intent){
 			ctx.startForegroundService(intent);
+		}
+		public void stopForeground( Service service, int notificationBehavior )
+		{
+			service.stopForeground( notificationBehavior );
 		}
 	}
 
