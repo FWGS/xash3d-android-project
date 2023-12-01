@@ -258,27 +258,6 @@
 										android:onClick="selectRwFolder" />
 								</LinearLayout>
 							</LinearLayout>
-							<LinearLayout
-								android:orientation="horizontal"
-								android:weightSum="1"
-								android:layout_width="match_parent"
-								android:layout_height="wrap_content"
-								android:layout_margin="10dp">
-								<TextView
-									android:layout_width="wrap_content"
-									android:layout_height="40dp"
-									android:text="@string/pixel_format"
-									android:id="@+id/pixel_format"
-									android:gravity="center_vertical"
-									android:textAppearance="?android:attr/textAppearanceMedium" />
-								<Spinner
-									android:layout_height="40dp"
-									android:layout_alignBaseline="@id/pixel_format"
-									android:layout_width="0dp"
-									android:layout_weight="1"
-									android:layout_gravity="right|center_vertical"
-									android:id="@+id/pixelSpinner"/>
-							</LinearLayout>
 							<ToggleButton
 								android:id="@+id/enableResizeWorkaround"
 								android:layout_width="match_parent"

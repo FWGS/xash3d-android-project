@@ -36,7 +36,6 @@ public class LauncherActivity extends Activity
 	static RadioButton radioScale, radioCustom;
 	static RadioGroup scaleGroup;
 	static CheckBox resolution;
-	static Spinner pixelSpinner;
 	static LinearLayout rodirSettings; // to easy show/hide
 	
 	static int mEngineWidth, mEngineHeight;
@@ -101,7 +100,6 @@ public class LauncherActivity extends Activity
 		resPath      = (EditText) findViewById( R.id.cmd_path );
 		checkUpdates = (CheckBox)findViewById( R.id.check_updates );
 		//updateToBeta = (CheckBox)findViewById( R.id.check_betas );
-		pixelSpinner = (Spinner) findViewById( R.id.pixelSpinner );
 		resizeWorkaround = (ToggleButton) findViewById( R.id.enableResizeWorkaround );
 		tvResPath    = (TextView) findViewById( R.id.textView_path );
 		immersiveMode = (CheckBox) findViewById( R.id.immersive_mode );
@@ -117,15 +115,7 @@ public class LauncherActivity extends Activity
 		useRoDir = (ToggleButton) findViewById( R.id.use_rodir );
 		useRoDirAuto = (CheckBox) findViewById( R.id.use_rodir_auto );
 		rodirSettings = (LinearLayout) findViewById( R.id.rodir_settings );
-		
-		final String[] list = {
-			"32 bit (RGBA8888)",
-			"16 bit (RGB565)",
-			"8 bit (RGB332)"
-		};
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item, list);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		pixelSpinner.setAdapter(adapter);
+
 		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
 		View.OnClickListener buttonListener = new View.OnClickListener() {
 			@Override
@@ -157,7 +147,6 @@ public class LauncherActivity extends Activity
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
 		updatePath(mPref.getString("basedir", FWGSLib.getDefaultXashPath() ) );
 		cmdArgs.setText(mPref.getString("argv","-dev 3 -log"));
-		pixelSpinner.setSelection(mPref.getInt("pixelformat", 0));
 		resizeWorkaround.setChecked(mPref.getBoolean("enableResizeWorkaround", true));
 		useRoDir.setChecked( mPref.getBoolean("use_rodir", false) );
 		useRoDirAuto.setChecked( mPref.getBoolean("use_rodir_auto", true) );
@@ -398,7 +387,6 @@ public class LauncherActivity extends Activity
 		editor.putBoolean("use_rodir_auto", useRoDirAuto.isChecked() );
 		editor.putString("writedir", writePath.getText().toString());
 		editor.putString("basedir", resPath.getText().toString());
-		editor.putInt("pixelformat", pixelSpinner.getSelectedItemPosition());
 		editor.putBoolean("enableResizeWorkaround",resizeWorkaround.isChecked());
 		editor.putBoolean("check_updates", checkUpdates.isChecked());
 		editor.putBoolean("resolution_fixed", resolution.isChecked());

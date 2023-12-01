@@ -55,7 +55,6 @@ public class XashActivity extends Activity {
 	public static String mArgv[];
 	public static final int sdk = Integer.valueOf( Build.VERSION.SDK );
 	public static final String TAG = "XASH3D:XashActivity";
-	public static int mPixelFormat;
 	public static XashInput.JoystickHandler handler;
 	public static boolean keyboardVisible = false;
 	public static boolean mEngineReady = false;
@@ -448,8 +447,7 @@ public class XashActivity extends Activity {
 
 		mVibrator = ( Vibrator )getSystemService( Context.VIBRATOR_SERVICE );
 		mHasVibrator =  handler.hasVibrator() && (mVibrator != null);
-		
-		mPixelFormat = mPref.getInt( "pixelformat", 0 );
+
 		mUseVolume = mPref.getBoolean( "usevolume", false );
 		if( mPref.getBoolean( "enableResizeWorkaround", true ) )
 		{
@@ -631,7 +629,7 @@ public class XashActivity extends Activity {
 	
 	public static int getSelectedPixelFormat()
 	{
-		return mPixelFormat;
+		return 0;
 	}
 	
 	public static int getGLAttribute( int attr )
