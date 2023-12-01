@@ -22,7 +22,7 @@ import su.xash.fwgslib.*;
 import android.Manifest;
 
 
-public class LauncherActivity extends Activity 
+public class LauncherActivity extends Activity
 {
 	// public final static String ARGV = "su.xash.engine.MESSAGE";
 	public final static int sdk = FWGSLib.sdk;
@@ -127,38 +127,31 @@ public class LauncherActivity extends Activity
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		pixelSpinner.setAdapter(adapter);
 		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
-		selectFolderButton.setOnClickListener(new View.OnClickListener()
-		{
+		View.OnClickListener buttonListener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) 
 			{
-				selectFolder(v);
+				switch(v.getId())
+				{
+					case R.id.button_select:
+						selectFolder(v);
+					break;
+					case R.id.button_launch:
+						startXash(v);
+					break;
+					case R.id.button_shortcut:
+						createShortcut(v);
+					break;
+					case R.id.button_about:
+						aboutXash(v);
+					break;
+				}
 			}
-		});
-		((Button)findViewById( R.id.button_launch )).setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v) 
-			{
-				startXash(v);
-			}
-		});
-		((Button)findViewById( R.id.button_shortcut )).setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v) 
-			{
-				createShortcut(v);
-			}
-		});
-		((Button)findViewById( R.id.button_about )).setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v) 
-			{
-				aboutXash(v);
-			}
-		});
+		};
+		(( Button ) findViewById( R.id.button_select )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_launch )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_shortcut )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_about )).setOnClickListener(buttonListener);
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
@@ -197,34 +190,39 @@ public class LauncherActivity extends Activity
 		if( mPref.getBoolean("resolution_custom", false) )
 			radioCustom.setChecked(true);
 		else radioScale.setChecked(true);
-		
-		radioCustom.setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener()
+
+		CompoundButton.OnCheckedChangeListener checkListener = new CompoundButton.OnCheckedChangeListener()
 		{
 			@Override
 			public void onCheckedChanged( CompoundButton v, boolean isChecked )
 			{
-				updateResolutionResult();
-				toggleResolutionFields();
+				switch( v.getId() )
+				{
+					case R.id.resolution_custom_r:
+						updateResolutionResult();
+						toggleResolutionFields();
+					break;
+					case R.id.resolution:
+						hideResolutionSettings( !isChecked );
+					break;
+					case R.id.use_rodir:
+						hideRodirSettings( !isChecked );
+					break;
+					case R.id.use_rodir_auto:
+						if( isChecked )
+						{
+							writePath.setText( FWGSLib.getExternalFilesDir( LauncherActivity.this ) );
+						}
+						writePath.setEnabled( !isChecked );
+					break;
+				}
 			}
-		} );
-		resolution.setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged( CompoundButton v, boolean isChecked )
-			{
-				hideResolutionSettings( !isChecked );
-			}
-		});
+		};
 		
-		useRoDir.setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged( CompoundButton v, boolean isChecked )
-			{
-				hideRodirSettings( !isChecked );
-			}
-		});
-		
+		radioCustom.setOnCheckedChangeListener( checkListener );
+		resolution.setOnCheckedChangeListener( checkListener );
+		useRoDir.setOnCheckedChangeListener( checkListener );
+		useRoDirAuto.setOnCheckedChangeListener( checkListener );
 		
 		if( sdk >= 19 )
 		{
@@ -247,18 +245,7 @@ public class LauncherActivity extends Activity
 			}
 		} );
 		
-		useRoDirAuto.setOnCheckedChangeListener( new CompoundButton.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged( CompoundButton b, boolean isChecked )
-			{
-				if( isChecked )
-				{
-					writePath.setText( FWGSLib.getExternalFilesDir( LauncherActivity.this ) );
-				}
-				writePath.setEnabled( !isChecked );
-			}
-		});
+
 
 		// disable autoupdater for Google Play
 		if( !XashConfig.GP_VERSION && mPref.getBoolean("check_updates", true))
@@ -545,26 +532,4 @@ public class LauncherActivity extends Activity
 		intent.putExtra( "argv", cmdArgs.getText().toString() );
 		startActivity(intent);
 	}
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_launcher, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }*/
-
-        return super.onOptionsItemSelected(item);
-    }
 }
