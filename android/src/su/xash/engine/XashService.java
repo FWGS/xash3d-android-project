@@ -69,8 +69,8 @@ public class XashService extends Service
 		if(not != null)
 			not.cancel();
 		XashActivity.mEngineReady = false;
-		XashActivity.nativeUnPause();
-		XashActivity.nativeOnDestroy();
+		XashBinding.nativeUnPause();
+		XashBinding.nativeOnDestroy();
 		if( XashActivity.mSurface != null )
 			XashActivity.mSurface.engineThreadJoin();
 		System.exit(0);

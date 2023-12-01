@@ -67,7 +67,7 @@ public class XashActivity extends Activity {
 	public static int mMinHeight = 240, mMinWidth = 320; // hl1 support 320 width, but mods may not.
 	public static boolean bIsCstrike = false;
 
-	private static boolean mHasVibrator;
+	public static boolean mHasVibrator;
 	private int mReturingWithResultCode = 0;
 	
 	private static int FPICKER_RESULT = 2;
@@ -242,7 +242,7 @@ public class XashActivity extends Activity {
 		if( mEngineReady )
 		{
 			// let engine save all configs before exiting.
-			nativeOnPause();
+			XashBinding.nativeOnPause();
 		
 			// wait until Xash will save all configs
 			mSurface.engineThreadWait();
@@ -257,7 +257,7 @@ public class XashActivity extends Activity {
 		
 		if( mEngineReady )
 		{
-			nativeOnResume();
+			XashBinding.nativeOnResume();
 		}
 		
 		mEnginePaused = false;
@@ -286,10 +286,10 @@ public class XashActivity extends Activity {
 		
 		if( mEngineReady )
 		{
-			nativeUnPause();
+			XashBinding.nativeUnPause();
 			
 			// let engine a chance to properly exit
-			nativeOnDestroy();
+			XashBinding.nativeOnDestroy();
 			
 			//mSurface.engineThreadWait();
 			
@@ -305,7 +305,7 @@ public class XashActivity extends Activity {
 	{
 		if( mEngineReady )
 		{
-			nativeOnFocusChange();
+			XashBinding.nativeOnFocusChange();
 		}
 		
 		super.onWindowFocusChanged( hasFocus );
@@ -352,7 +352,7 @@ public class XashActivity extends Activity {
 		
 		String testDir = mUseRoDir ? mWriteDir : basedir;
 
-		if( nativeTestWritePermission( testDir ) == 0 )
+		if( XashBinding.nativeTestWritePermission( testDir ) == 0 )
 		{
 			Log.v( TAG, "First check has failed!" );
 			
@@ -505,7 +505,7 @@ public class XashActivity extends Activity {
 	private boolean checkCstrike( String gamelibdir, String packagename, String signature )
 	{
 		return ( !FWGSLib.checkGameLibDir( gamelibdir, packagename ) ||
-				CertCheck.dumbCertificateCheck( getContext(), packagename, signature, false ) );
+				CertCheck.dumbCertificateCheck( this, packagename, signature, false ) );
 	}
 
 	private boolean setupEnvironment()
@@ -555,24 +555,24 @@ public class XashActivity extends Activity {
 		{
 			Log.d( TAG, "Enabled RoDir: " + basedir + " -> " + mWriteDir );
 		
-			setenv( "XASH3D_RODIR",   basedir,   true );
-			setenv( "XASH3D_BASEDIR", mWriteDir, true );
+			XashBinding.setenv( "XASH3D_RODIR",   basedir,   true );
+			XashBinding.setenv( "XASH3D_BASEDIR", mWriteDir, true );
 		}
 		else
 		{
 			Log.d( TAG, "Disabled RoDir: " + basedir );
 			
-			setenv( "XASH3D_BASEDIR", basedir,   true );
+			XashBinding.setenv( "XASH3D_BASEDIR", basedir,   true );
 		}
-		setenv( "XASH3D_ENGLIBDIR",  enginedir,  true );
-		setenv( "XASH3D_GAMELIBDIR", gamelibdir, true );
-		setenv( "XASH3D_GAMEDIR",    gamedir,    true );
-		setenv( "XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pak", true );
+		XashBinding.setenv( "XASH3D_ENGLIBDIR",  enginedir,  true );
+		XashBinding.setenv( "XASH3D_GAMELIBDIR", gamelibdir, true );
+		XashBinding.setenv( "XASH3D_GAMEDIR",    gamedir,    true );
+		XashBinding.setenv( "XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pak", true );
 		Log.d( TAG, "enginepak = " + getFilesDir().getPath() + "/extras.pak" );
 		
 		String pakfile = intent.getStringExtra( "pakfile" );
 		if( pakfile != null && pakfile != "" )
-			setenv( "XASH3D_EXTRAS_PAK2", pakfile, true );
+			XashBinding.setenv( "XASH3D_EXTRAS_PAK2", pakfile, true );
 		Log.d( TAG, "pakfile = " + ( pakfile != null ? pakfile : "null" ) );
 		
 		String[] env = intent.getStringArrayExtra( "env" );
@@ -583,7 +583,7 @@ public class XashActivity extends Activity {
 				for( int i = 0; i + 1 < env.length; i += 2 )
 				{
 					Log.d(TAG, "extraEnv[" + env[i] + "] = " + env[i + 1]);
-					setenv( env[i], env[i + 1], true );
+					XashBinding.setenv( env[i], env[i + 1], true );
 				}
 			}
 			catch( Exception e )
@@ -594,127 +594,9 @@ public class XashActivity extends Activity {
 		
 		return true;
 	}
-	
-	public static native int  nativeInit( Object arguments );
-	public static native void nativeQuit();
-	public static native void onNativeResize( int x, int y );
-	public static native void nativeTouch( int pointerFingerId, int action, float x, float y );
-	public static native void nativeKey( int down, int code );
-	public static native void nativeString( String text );
-	public static native void nativeSetPause( int pause );
-	public static native void nativeOnDestroy();
-	public static native void nativeOnResume();
-	public static native void nativeOnFocusChange();
-	public static native void nativeOnPause();
-	public static native void nativeUnPause();
-	public static native void nativeHat( int id, byte hat, byte keycode, boolean down ) ;
-	public static native void nativeAxis( int id, byte axis, short value );
-	public static native void nativeJoyButton( int id, byte button, boolean down );
-	public static native int  nativeTestWritePermission( String path );
-	public static native void nativeMouseMove( float x, float y );
-	
-	// for future expansion
-	public static native void nativeBall( int id, byte ball, short xrel, short yrel );
-	public static native void nativeJoyAdd( int id );
-	public static native void nativeJoyDel( int id );
-	
-	// libjnisetenv
-	public static native int setenv( String key, String value, boolean overwrite );
-	
-	// Java functions called from C
-	public static boolean createGLContext( int[] attr, int[] contextAttr ) 
-	{
-		return mSurface.InitGL(attr, contextAttr);
-	}
-	
-	public static int getSelectedPixelFormat()
-	{
-		return 0;
-	}
-	
-	public static int getGLAttribute( int attr )
-	{
-		return mSurface.getGLAttribute( attr );
-	}
-	
-	public static void swapBuffers() 
-	{
-		mSurface.SwapBuffers();
-	}
-	
-	public static void engineThreadNotify()
-	{
-		mSurface.engineThreadNotify();
-	}
-	
-	public static Surface getNativeSurface( int type )
-	{
-		return XashActivity.mSurface.getNativeSurface( type );
-	}
-	
-	public static void vibrate( int time ) 
-	{
-		if( mHasVibrator )
-		{
-			mVibrator.vibrate( time );
-		}
-	}
-	
-	public static void toggleEGL( int toggle )
-	{
-		mSurface.toggleEGL( toggle );
-	}
-	
-	public static boolean deleteGLContext() 
-	{
-		mSurface.ShutdownGL();
-		return true;
-	}
 
-	public static Context getContext() 
-	{
-		return mSingleton;
-	}
 	
-	protected final String[] messageboxData = new String[2];
-	public static void messageBox( String title, String text )
-	{
-		mSingleton.messageboxData[0] = title;
-		mSingleton.messageboxData[1] = text;
-		mSingleton.runOnUiThread( new Runnable() 
-		{
-			@Override
-			public void run()
-			{
-				new AlertDialog.Builder( mSingleton )
-					.setTitle( mSingleton.messageboxData[0] )
-					.setMessage( mSingleton.messageboxData[1] )
-					.setPositiveButton( "Ok", new DialogInterface.OnClickListener() 
-						{
-							public void onClick( DialogInterface dialog, int whichButton ) 
-							{
-								synchronized( mSingleton.messageboxData )
-								{
-									mSingleton.messageboxData.notify();
-								}
-							}
-						})
-					.setCancelable( false )
-					.show();
-			}
-		});
-		synchronized( mSingleton.messageboxData ) 
-		{
-			try 
-			{
-				mSingleton.messageboxData.wait();
-			} 
-			catch( InterruptedException ex )
-			{
-				ex.printStackTrace();
-			}
-		}
-	}
+
 
 	public static boolean handleKey( int keyCode, KeyEvent event )
 	{
@@ -747,12 +629,12 @@ public class XashActivity extends Activity {
 
 			if( action == KeyEvent.ACTION_DOWN )
 			{
-				nativeHat( id, hat, val, true  );
+				XashBinding.nativeHat( id, hat, val, true  );
 				return true;
 			}
 			else if( action == KeyEvent.ACTION_UP )
 			{
-				nativeHat( id, hat, val, false );
+				XashBinding.nativeHat( id, hat, val, false );
 				return true;
 			}
 
@@ -809,12 +691,12 @@ public class XashActivity extends Activity {
 
 			if( action == KeyEvent.ACTION_DOWN )
 			{
-				nativeJoyButton( id, val, true );
+				XashBinding.nativeJoyButton( id, val, true );
 				return true;
 			}
 			else if( action == KeyEvent.ACTION_UP )
 			{
-				nativeJoyButton( id, val, false );
+				XashBinding.nativeJoyButton( id, val, false );
 				return true;
 			}
 			return false;
@@ -829,9 +711,9 @@ public class XashActivity extends Activity {
 		if( action == KeyEvent.ACTION_DOWN )
 		{
 			if( event.isPrintingKey() || keyCode == 62 )// space is printing too
-				XashActivity.nativeString( String.valueOf( ( char )event.getUnicodeChar() ) );
+				XashBinding.nativeString( String.valueOf( ( char )event.getUnicodeChar() ) );
 			
-			XashActivity.nativeKey( 1, keyCode );
+			XashBinding.nativeKey( 1, keyCode );
 			
 			return true;
 		}
@@ -848,7 +730,7 @@ public class XashActivity extends Activity {
 		}*/
 		else if( action == KeyEvent.ACTION_UP )
 		{
-			XashActivity.nativeKey( 0, keyCode );
+			XashBinding.nativeKey( 0, keyCode );
 			
 			return true;
 		}
@@ -864,7 +746,7 @@ public class XashActivity extends Activity {
 			if( current <= flat && current >= -flat )
 				current = 0;
 			
-			nativeAxis( id, engineAxis, ( short )( current * SHRT_MAX ) );
+			XashBinding.nativeAxis( id, engineAxis, ( short )( current * SHRT_MAX ) );
 		}
 		
 		return current;
@@ -878,147 +760,51 @@ public class XashActivity extends Activity {
 			final byte hat = 0;
 			if( isXAxis )
 			{
-				     if( curr > 0 ) nativeHat( id, hat, JOY_HAT_RIGHT, true );
-				else if( curr < 0 ) nativeHat( id, hat, JOY_HAT_LEFT,  true );
+				if( curr > 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_RIGHT, true );
+				else if( curr < 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_LEFT,  true );
 				// unpress previous if curr centered
-				else if( prev > 0 ) nativeHat( id, hat, JOY_HAT_RIGHT, false );
-				else if( prev < 0 ) nativeHat( id, hat, JOY_HAT_LEFT,  false );
+				else if( prev > 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_RIGHT, false );
+				else if( prev < 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_LEFT,  false );
 			}
 			else
 			{
-				     if( curr > 0 ) nativeHat( id, hat, JOY_HAT_DOWN, true );
-				else if( curr < 0 ) nativeHat( id, hat, JOY_HAT_UP,   true );
+				if( curr > 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_DOWN, true );
+				else if( curr < 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_UP,   true );
 				// unpress previous if curr centered
-				else if( prev > 0 ) nativeHat( id, hat, JOY_HAT_DOWN, false );
-				else if( prev < 0 ) nativeHat( id, hat, JOY_HAT_UP,   false );
+				else if( prev > 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_DOWN, false );
+				else if( prev < 0 ) XashBinding.nativeHat( id, hat, JOY_HAT_UP,   false );
 			}
 		}
 		return curr;
 	}
 
-	static class ShowTextInputTask implements Runnable
+	public static void showInput( int show )
 	{
-		/*
-		 * This is used to regulate the pan&scan method to have some offset from
-		 * the bottom edge of the input region and the top edge of an input
-		 * method (soft keyboard)
-		 */
-		private int show;
-
-		public ShowTextInputTask( int show1 ) 
-		{
-		   show = show1;
-		}
-
-		@Override
-		public void run() 
-		{
-			InputMethodManager imm = ( InputMethodManager )getContext().getSystemService( Context.INPUT_METHOD_SERVICE );
+		InputMethodManager imm = ( InputMethodManager )mSingleton.getSystemService( Context.INPUT_METHOD_SERVICE );
 			
-			if( mTextEdit == null )
-			{
-				mTextEdit = new DummyEdit( getContext() );
-				mLayout.addView( mTextEdit );
-			}
-			if( show == 1 )
-			{
-				mTextEdit.setVisibility( View.VISIBLE );
-				mTextEdit.requestFocus();
+		if( mTextEdit == null )
+		{
+			mTextEdit = new DummyEdit( mSingleton );
+			mLayout.addView( mTextEdit );
+		}
+		if( show == 1 )
+		{
+			mTextEdit.setVisibility( View.VISIBLE );
+			mTextEdit.requestFocus();
 				
-				imm.showSoftInput( mTextEdit, 0 );
-				keyboardVisible = true;
-				FWGSLib.cmp.applyImmersiveMode( keyboardVisible, mDecorView );
-			}
-			else
-			{
-				mTextEdit.setVisibility( View.GONE );
-				imm.hideSoftInputFromWindow( mTextEdit.getWindowToken(), 0 );
-				keyboardVisible = false;
-				FWGSLib.cmp.applyImmersiveMode( keyboardVisible, mDecorView );
-			}
+			imm.showSoftInput( mTextEdit, 0 );
+			keyboardVisible = true;
+			FWGSLib.cmp.applyImmersiveMode( keyboardVisible, mDecorView );
 		}
-	}
-
-	/**
-	 * This method is called by engine using JNI.
-	 */
-	public static void showKeyboard( int show )
-	{
-		// Transfer the task to the main thread as a Runnable
-		mSingleton.runOnUiThread( new ShowTextInputTask( show ) );
-		//if( show == 1 )
-		//	mSurface.getHolder().setSizeFromLayout();
-	}
-
-	public static void setIcon( String path )
-	{
-		if( fGDBSafe )
-			return;
-		
-		Log.v( TAG, "setIcon(" + path + ")" );
-		
-		try
+		else
 		{
-			BitmapFactory.Options o = new BitmapFactory.Options();
-			o.inJustDecodeBounds = true;
-			
-			Bitmap icon = BitmapFactory.decodeFile( path, o );
-			
-			if( icon.getWidth() < 16 )
-				return;
-			
-			XashService.not.setIcon(icon);
-		}
-		catch( Exception e )
-		{
-		}
-	}
-	
-	public static void setTitle( String title )
-	{
-		Log.v( TAG, "setTitle(" + title + ")" );
-		try
-		{
-			SharedPreferences.Editor editor = mPref.edit();
-			editor.putBoolean("successfulRun", true);
-			editor.commit();
-			
-			XashService.not.setText(title);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
+			mTextEdit.setVisibility( View.GONE );
+			imm.hideSoftInputFromWindow( mTextEdit.getWindowToken(), 0 );
+			keyboardVisible = false;
+			FWGSLib.cmp.applyImmersiveMode( keyboardVisible, mDecorView );
 		}
 	}
 
-	public static String getAndroidID()
-	{
-		String str = Secure.getString( mSingleton.getContentResolver(), Secure.ANDROID_ID );
-		
-		if( str == null )
-			return "";
-		
-		return str;
-	}
-
-	public static String loadID()
-	{
-		return mPref.getString( "xash_id", "" );
-	}
-
-	public static void saveID( String id )
-	{
-		SharedPreferences.Editor editor = mPref.edit();
-
-		editor.putString( "xash_id", id );
-		editor.commit();
-	}
-
-	public static void showMouse( int show )
-	{
-		fMouseShown = show != 0;
-		handler.showMouse( fMouseShown );
-	}
 	
 	public static void GenericUpdatePage()
 	{
@@ -1038,23 +824,6 @@ public class XashActivity extends Activity {
 		}
 	}
 	
-	// Just opens browser or update page
-	public static void shellExecute( String path )
-	{
-		if( path.equals("PlatformUpdatePage"))
-		{
-			PlatformUpdatePage();
-			return;
-		}
-		else if( path.equals( "GenericUpdatePage" ))
-		{
-			GenericUpdatePage();
-			return;
-		}
-	
-		final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(path));
-		mSingleton.startActivity(intent);
-	}
 }
 
 /**
@@ -1105,7 +874,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 //		if( mEGL == null )
 //			return;
 		
-		XashActivity.nativeSetPause( 0 );
+		XashBinding.nativeSetPause( 0 );
 		XashActivity.mEnginePaused = false;
 		//holder.setFixedSize(640,480);
 		//SurfaceHolder.setFixedSize(640,480);
@@ -1119,7 +888,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 //		if( mEGL == null )
 //			return;
 		
-		XashActivity.nativeSetPause(1);
+		XashBinding.nativeSetPause(1);
 		engineThreadWait();
 	}
 
@@ -1166,7 +935,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 
 		setSurfaceSize( holder, getWidth(), getHeight() );
 
-		XashActivity.onNativeResize( mEngineWidth, mEngineHeight );
+		XashBinding.onNativeResize( mEngineWidth, mEngineHeight );
 
 		// Now start up the C app thread
 		if( mEngThread == null ) 
@@ -1175,7 +944,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 				@Override
 				public void run()
 				{
-					XashActivity.nativeInit( XashActivity.mArgv );
+					XashBinding.nativeInit( XashActivity.mArgv );
 				}
 			}, "EngineThread" );
 			mEngThread.start();
@@ -1428,5 +1197,231 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 		return super.dispatchKeyEvent( event );
 	}
 
+}
+
+class XashBinding
+{
+	// jni exports
+	public static native int  nativeInit( Object arguments );
+	public static native void nativeQuit();
+	public static native void onNativeResize( int x, int y );
+	public static native void nativeTouch( int pointerFingerId, int action, float x, float y );
+	public static native void nativeKey( int down, int code );
+	public static native void nativeString( String text );
+	public static native void nativeSetPause( int pause );
+	public static native void nativeOnDestroy();
+	public static native void nativeOnResume();
+	public static native void nativeOnFocusChange();
+	public static native void nativeOnPause();
+	public static native void nativeUnPause();
+	public static native void nativeHat( int id, byte hat, byte keycode, boolean down ) ;
+	public static native void nativeAxis( int id, byte axis, short value );
+	public static native void nativeJoyButton( int id, byte button, boolean down );
+	public static native int  nativeTestWritePermission( String path );
+	public static native void nativeMouseMove( float x, float y );
+	
+	// for future expansion
+	public static native void nativeBall( int id, byte ball, short xrel, short yrel );
+	public static native void nativeJoyAdd( int id );
+	public static native void nativeJoyDel( int id );
+	
+	// libjnisetenv
+	public static native int setenv( String key, String value, boolean overwrite );
+
+	// Java functions called from C
+	public static boolean createGLContext( int[] attr, int[] contextAttr ) 
+	{
+		return XashActivity.mSurface.InitGL(attr, contextAttr);
+	}
+	
+	public static int getGLAttribute( int attr )
+	{
+		return XashActivity.mSurface.getGLAttribute( attr );
+	}
+	
+	public static void swapBuffers() 
+	{
+		XashActivity.mSurface.SwapBuffers();
+	}
+	
+	public static void engineThreadNotify()
+	{
+		XashActivity.mSurface.engineThreadNotify();
+	}
+	
+	public static Surface getNativeSurface( int type )
+	{
+		return XashActivity.mSurface.getNativeSurface( type );
+	}
+	
+	public static void vibrate( int time ) 
+	{
+		if( XashActivity.mHasVibrator )
+		{
+			XashActivity.mVibrator.vibrate( time );
+		}
+	}
+	
+	public static void toggleEGL( int toggle )
+	{
+		XashActivity.mSurface.toggleEGL( toggle );
+	}
+
+	public static boolean deleteGLContext()
+	{
+		XashActivity.mSurface.ShutdownGL();
+		return true;
+	}
+
+	// getNativeObject()?
+	/*public static Context getContext() 
+	{
+		return XashActivity.mSingleton;
+	}*/
+
+	public static void showKeyboard( int show1 )
+	{
+		final int show = show1;
+		// Transfer the task to the main thread as a Runnable
+		XashActivity.mSingleton.runOnUiThread( new Runnable( ){
+			@Override
+			public void run() 
+			{
+				XashActivity.showInput( show );
+			}
+		} );
+	}
+
+	public static void setIcon( String path )
+	{
+		if( XashActivity.fGDBSafe )
+			return;
+		
+		Log.v( "XASH", "setIcon(" + path + ")" );
+		
+		try
+		{
+			BitmapFactory.Options o = new BitmapFactory.Options();
+			o.inJustDecodeBounds = true;
+			
+			Bitmap icon = BitmapFactory.decodeFile( path, o );
+			
+			if( icon.getWidth() < 16 )
+				return;
+			
+			XashService.not.setIcon(icon);
+		}
+		catch( Exception e )
+		{
+		}
+	}
+	
+	public static void setTitle( String title )
+	{
+		Log.v( "XASH", "setTitle(" + title + ")" );
+		try
+		{
+			SharedPreferences.Editor editor = XashActivity.mPref.edit();
+			editor.putBoolean("successfulRun", true);
+			editor.commit();
+			
+			XashService.not.setText(title);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public static String getAndroidID()
+	{
+		String str = Secure.getString( XashActivity.mSingleton.getContentResolver(), Secure.ANDROID_ID );
+		
+		if( str == null )
+			return "";
+		
+		return str;
+	}
+
+	public static String loadID()
+	{
+		return XashActivity.mPref.getString( "xash_id", "" );
+	}
+
+	public static void saveID( String id )
+	{
+		SharedPreferences.Editor editor = XashActivity.mPref.edit();
+
+		editor.putString( "xash_id", id );
+		editor.commit();
+	}
+
+	public static void showMouse( int show )
+	{
+		boolean sh = show != 0;
+		XashActivity.fMouseShown = sh;
+		XashActivity.handler.showMouse( sh );
+	}
+
+		// Just opens browser or update page
+	public static void shellExecute( String path )
+	{
+		if( path.equals("PlatformUpdatePage"))
+		{
+			XashActivity.PlatformUpdatePage();
+			return;
+		}
+		else if( path.equals( "GenericUpdatePage" ))
+		{
+			XashActivity.GenericUpdatePage();
+			return;
+		}
+	
+		final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(path));
+		XashActivity.mSingleton.startActivity(intent);
+	}
+
+	static String[] messageboxData = new String[2];
+	public static void messageBox( String title, String text )
+	{
+		Log.e( "Messagebox", title );
+		Log.e( title, text );
+		messageboxData[0] = title;
+		messageboxData[1] = text;
+		XashActivity.mSingleton.runOnUiThread( new Runnable() 
+		{
+			@Override
+					public void run()
+			{
+				new AlertDialog.Builder( XashActivity.mSingleton )
+						.setTitle( messageboxData[0] )
+						.setMessage( messageboxData[1] )
+						.setPositiveButton( "Ok", new DialogInterface.OnClickListener() 
+				{
+					public void onClick( DialogInterface dialog, int whichButton ) 
+					{
+						synchronized( messageboxData )
+						{
+							messageboxData.notify();
+						}
+					}
+				})
+						.setCancelable( false )
+								.show();
+			}
+		});
+
+		synchronized( messageboxData ) 
+		{
+			try 
+			{
+				messageboxData.wait();
+			} 
+			catch( InterruptedException ex )
+			{
+				ex.printStackTrace();
+			}
+		}
+	}
 }
 

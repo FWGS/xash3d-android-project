@@ -219,19 +219,19 @@ static class JoystickHandler_v12 extends JoystickHandler
 					case MotionEvent.ACTION_SCROLL:
 					if( event.getAxisValue( MotionEvent.AXIS_VSCROLL ) < 0.0f )
 					{
-						XashActivity.nativeKey( 1, -239 );
-						XashActivity.nativeKey( 0, -239 );
+						XashBinding.nativeKey( 1, -239 );
+						XashBinding.nativeKey( 0, -239 );
 						return true;
 					}
 					else
 					{
-						XashActivity.nativeKey( 1, -240 );
-						XashActivity.nativeKey( 0, -240 );
+						XashBinding.nativeKey( 1, -240 );
+						XashBinding.nativeKey( 0, -240 );
 					}
 					return true;
 				}
 				
-				XashActivity.nativeMouseMove( x, y );
+				XashBinding.nativeMouseMove( x, y );
 				// Log.v("XashInput", "MouseMove: " +x + " " + y );
 				return true;
 			}
@@ -304,7 +304,7 @@ class Wrap_NVMouseExtensions
 			try
 			{
 				mPointerIcon=Class.forName("android.view.PointerIcon");
-				mEmptyIcon = mPointerIcon.getDeclaredMethod("getSystemIcon",android.content.Context.class, int.class).invoke(null,XashActivity.mSingleton.getContext(),0);
+				mEmptyIcon = mPointerIcon.getDeclaredMethod("getSystemIcon",android.content.Context.class, int.class).invoke(null,XashActivity.mSingleton,0);
 				mView_setPointerIcon = View.class.getMethod("setPointerIcon",mPointerIcon);
 			}
 			catch( Exception ex1 )
@@ -408,7 +408,7 @@ class EngineTouchListener_v1 implements View.OnTouchListener
 	// Touch events
 	public boolean onTouch( View v, MotionEvent event )
 	{
-		XashActivity.nativeTouch( 0, event.getAction(), event.getX(), event.getY() );
+		XashBinding.nativeTouch( 0, event.getAction(), event.getX(), event.getY() );
 		return true;
 	}
 }
@@ -435,7 +435,7 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 					x = event.getX();
 					y = event.getY();
 
-					XashActivity.nativeMouseMove( x - lx, y - ly );
+					XashBinding.nativeMouseMove( x - lx, y - ly );
 					lx = x;
 					ly = y;
 					return true;
@@ -446,7 +446,7 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 					pointerFingerId = event.getPointerId( i );
 					x = event.getX( i ) * XashActivity.mTouchScaleX;
 					y = event.getY( i ) * XashActivity.mTouchScaleY;
-					XashActivity.nativeTouch( pointerFingerId, 2, x, y );
+					XashBinding.nativeTouch( pointerFingerId, 2, x, y );
 				}
 				break;
 			case MotionEvent.ACTION_UP:
@@ -459,17 +459,17 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 					int buttonState = XashActivity.handler.getButtonState( event );
 					if( down && ( buttonState & MotionEvent.BUTTON_SECONDARY ) != 0 )
 					{
-						XashActivity.nativeKey( 1, -243 );
+						XashBinding.nativeKey( 1, -243 );
 						secondarypressed = true;
 						return true;
 					}
 					else if( !down && secondarypressed && ( buttonState & MotionEvent.BUTTON_SECONDARY ) == 0 )
 					{
 						secondarypressed = false;
-						XashActivity.nativeKey( 0, -243 );
+						XashBinding.nativeKey( 0, -243 );
 						return true;
 					}
-					XashActivity.nativeKey( down ? 1 : 0, -241 );
+					XashBinding.nativeKey( down ? 1 : 0, -241 );
 					return true;
 				}
 				i = 0;
@@ -487,9 +487,9 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 				x = event.getX( i ) * XashActivity.mTouchScaleX;
 				y = event.getY( i ) * XashActivity.mTouchScaleY;
 				if( action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP )
-					XashActivity.nativeTouch( pointerFingerId,1, x, y );
+					XashBinding.nativeTouch( pointerFingerId,1, x, y );
 				if( action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN )
-					XashActivity.nativeTouch( pointerFingerId,0, x, y );
+					XashBinding.nativeTouch( pointerFingerId,0, x, y );
 				break;
 			case MotionEvent.ACTION_CANCEL:
 				for( i = 0; i < pointerCount; i++ ) 
@@ -497,7 +497,7 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 					pointerFingerId = event.getPointerId( i );
 					x = event.getX( i ) * XashActivity.mTouchScaleX;
 					y = event.getY( i ) * XashActivity.mTouchScaleY;
-					XashActivity.nativeTouch( pointerFingerId, 1, x, y );
+					XashBinding.nativeTouch( pointerFingerId, 1, x, y );
 				}
 				break;
 			default: break;
@@ -567,10 +567,10 @@ class XashInputConnection extends BaseInputConnection
 		// nativeCommitText(text.toString(), newCursorPosition);
 		if( text.toString().equals( "\n" ) )
 		{
-			XashActivity.nativeKey( 1, KeyEvent.KEYCODE_ENTER );
-			XashActivity.nativeKey( 0, KeyEvent.KEYCODE_ENTER );
+			XashBinding.nativeKey( 1, KeyEvent.KEYCODE_ENTER );
+			XashBinding.nativeKey( 0, KeyEvent.KEYCODE_ENTER );
 		}
-		XashActivity.nativeString( text.toString() );
+		XashBinding.nativeString( text.toString() );
 		
 		return super.commitText( text, newCursorPosition );
 	}
@@ -584,7 +584,7 @@ class XashInputConnection extends BaseInputConnection
 		//  Just leaving this unimplemented fixes "twice" input on T9/Swype-like keyboards
 	
 		//ativeSetComposingText(text.toString(), newCursorPosition);
-		// XashActivity.nativeString( text.toString() );
+		// XashBinding.nativeString( text.toString() );
 		
 		return super.setComposingText( text, newCursorPosition );
 	}
