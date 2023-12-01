@@ -808,7 +808,7 @@ class TerminalEmulator {
 		for (int i = 0; i < length; i++) {
 			byte b = buffer[base + i];
 			try {
-				Log.i("append","char" + (char)b);
+				//Log.i("append","char" + (char)b);
 				if (TermView.LOG_CHARACTERS_FLAG) {
 					char printableB = (char) b;
 					if (b < 32 || b > 126) {
@@ -2455,7 +2455,7 @@ public class TermView extends View {
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		Log.i("Poller","SizeChanged");
+		//Log.i("Poller","SizeChanged");
 		updateSize(w, h);
 		if (!mKnownSize) {
 			mKnownSize = true;
@@ -2469,7 +2469,7 @@ public class TermView extends View {
 					try {
 						while(true) {
 							int read = mTermIn.read(mBuffer);
-							Log.i("Poller","Read "+read);
+							//Log.i("Poller","Read "+read);
 							if(read < 0) break;
 							mByteQueue.write(mBuffer, 0, read);
 							mHandler.sendMessage(
