@@ -495,9 +495,6 @@ public class XashActivity extends Activity {
 			}
 		}
 		FWGSLib.cmp.startForegroundService( this, new Intent( getBaseContext(), XashService.class ) );
-		Intent debugIntent = new Intent( getBaseContext(), DebugService.class );
-		debugIntent.putExtra("PID", android.os.Process.myPid());
-		FWGSLib.cmp.startForegroundService( this, debugIntent );
 
 		mEngineReady = true;
 	}
@@ -591,7 +588,8 @@ public class XashActivity extends Activity {
 				e.printStackTrace();
 			}
 		}
-		
+		if( mPref.getBoolean( "gdb_wait", false ))
+			XashBinding.setenv( "XASH3D_GDB_WAIT", "1", true );
 		return true;
 	}
 
@@ -948,6 +946,13 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 				}
 			}, "EngineThread" );
 			mEngThread.start();
+			if( XashActivity.mPref.getBoolean( "launch_gdb", false ))
+			{
+				XashActivity.fGDBSafe = true;
+				Intent debugIntent = new Intent( XashActivity.mSingleton, DebugService.class );
+				debugIntent.putExtra( "PID", android.os.Process.myPid() );
+				FWGSLib.cmp.startForegroundService( XashActivity.mSingleton, debugIntent );
+			}
 		}
 	}
 	

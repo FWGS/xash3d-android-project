@@ -188,7 +188,7 @@ public class DebugService extends XashService
 
 		java.lang.Process process;
 		try {
-			process = Runtime.getRuntime().exec(new String[]{"/system/bin/sh","-c","TERM=vt100 cat 2>&1"});
+			process = Runtime.getRuntime().exec(new String[]{"/system/bin/sh","-c","logcat&HOME=/data/data/su.xash.engine/files/ FAKE_TTY=1 TERM=linux /data/data/su.xash.engine/files/gdb32 /system/bin/app_process32 -p " + mPid + " 2>&1"});
 			OutputStream termOut = process.getOutputStream();
 			InputStream termIn = process.getInputStream();
 	
