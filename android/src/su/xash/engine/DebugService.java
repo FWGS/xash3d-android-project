@@ -38,6 +38,11 @@ public class DebugService extends XashService
 	{
 		return 1;
 	}
+	@Override
+	public void onTaskRemoved(Intent rootIntent) 
+	{
+		Log.e("DebugService", "OnTaskRemoved");
+	}
 
 	@Override
 	void startAction(Intent intent)

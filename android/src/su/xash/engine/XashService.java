@@ -58,8 +58,7 @@ public class XashService extends Service
 	{
 		return 0;
 	}
-	
-	public static void exitAction()
+	public static void requestStop()
 	{
 		if( instance!= null )
 		{
@@ -68,6 +67,12 @@ public class XashService extends Service
 		}
 		if(not != null)
 			not.cancel();
+	}
+	
+	public static void exitAction()
+	{
+	Log.d("XashService", "exitAction...");
+		requestStop();
 		XashActivity.mEngineReady = false;
 		XashBinding.nativeUnPause();
 		XashBinding.nativeOnDestroy();

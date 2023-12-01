@@ -1333,6 +1333,19 @@ class XashBinding
 		}
 	}
 
+	public static void preShutdown( )
+	{
+		Log.v( "XASH", "preShutdown" );
+		try
+		{
+			XashService.requestStop();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	public static String getAndroidID()
 	{
 		String str = Secure.getString( XashActivity.mSingleton.getContentResolver(), Secure.ANDROID_ID );
