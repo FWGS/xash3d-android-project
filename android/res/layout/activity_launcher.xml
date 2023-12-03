@@ -358,6 +358,26 @@
 										android:numeric="integer" />
 								</LinearLayout>
 							</RadioGroup>
+							<CheckBox
+								android:id="@+id/debugger"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:text="Enable debugger" />
+							<EditText
+								android:id="@+id/debugger_command"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_marginBottom="5dp"
+								android:layout_marginLeft="3dp"
+								android:layout_marginTop="5dp"
+								android:layout_margin="10dp" />
+							<CheckBox
+								android:id="@+id/debugger_wait"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:text="Wait for debugger" />
 							<!--<TextView
 								android:id="@+id/textView7"
 								android:layout_marginBottom="10dp"

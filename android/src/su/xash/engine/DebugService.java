@@ -7,6 +7,7 @@ import android.widget.LinearLayout.*;
 import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.EditText;
+import su.xash.fwgslib.FWGSLib;
 import su.xash.fwgslib.TermView;
 import su.xash.fwgslib.FloatingLayout;
 import java.io.InputStream;
@@ -188,7 +189,9 @@ public class DebugService extends XashService
 
 		java.lang.Process process;
 		try {
-			process = Runtime.getRuntime().exec(new String[]{"/system/bin/sh","-c","logcat&HOME=/data/data/su.xash.engine/files/ FAKE_TTY=1 TERM=linux /data/data/su.xash.engine/files/gdb32 /system/bin/app_process32 -p " + mPid + " 2>&1"});
+			SharedPreferences pref = getSharedPreferences( "engine", 0 );
+			String command = pref.getString("gdb_command", "cat 2>&1").replace( "{GDB}", "/data/data/su.xash.engine/files/gdb32" ).replace( "{PID}", String.valueOf( mPid )).replace( "{APP_PROCESS}", FWGSLib.getAppProcessPath( mPid ));
+			process = Runtime.getRuntime().exec( new String[]{ "/system/bin/sh", "-c", command });
 			OutputStream termOut = process.getOutputStream();
 			InputStream termIn = process.getInputStream();
 	

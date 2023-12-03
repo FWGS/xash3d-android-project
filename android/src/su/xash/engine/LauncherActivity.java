@@ -29,13 +29,13 @@ public class LauncherActivity extends Activity
 	public final static String UPDATE_LINK = "https://api.github.com/repos/FWGS/xash3d-fwgs/releases"; // releases/latest doesn't return prerelease and drafts
 	static SharedPreferences mPref;
 	
-	static EditText cmdArgs, resPath, writePath, resScale, resWidth, resHeight;
+	static EditText cmdArgs, resPath, writePath, resScale, resWidth, resHeight, debuggerCommand;
 	static ToggleButton useVolume, resizeWorkaround, useRoDir;
 	static CheckBox	checkUpdates, immersiveMode, useRoDirAuto;
 	static TextView tvResPath, resResult;
 	static RadioButton radioScale, radioCustom;
 	static RadioGroup scaleGroup;
-	static CheckBox resolution;
+	static CheckBox resolution, debugger, debuggerWait;
 	static LinearLayout rodirSettings; // to easy show/hide
 	
 	static int mEngineWidth, mEngineHeight;
@@ -115,6 +115,9 @@ public class LauncherActivity extends Activity
 		useRoDir = (ToggleButton) findViewById( R.id.use_rodir );
 		useRoDirAuto = (CheckBox) findViewById( R.id.use_rodir_auto );
 		rodirSettings = (LinearLayout) findViewById( R.id.rodir_settings );
+		debuggerCommand = (EditText) findViewById( R.id.debugger_command );
+		debugger = (CheckBox) findViewById( R.id.debugger );
+		debuggerWait = (CheckBox) findViewById( R.id.debugger_wait );
 
 		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
 		View.OnClickListener buttonListener = new View.OnClickListener() {
@@ -151,6 +154,10 @@ public class LauncherActivity extends Activity
 		useRoDir.setChecked( mPref.getBoolean("use_rodir", false) );
 		useRoDirAuto.setChecked( mPref.getBoolean("use_rodir_auto", true) );
 		writePath.setText(mPref.getString("writedir", FWGSLib.getExternalFilesDir(this)));
+
+		debugger.setChecked( mPref.getBoolean( "launch_gdb", false ));
+		debuggerWait.setChecked( mPref.getBoolean( "gdb_wait", true ));
+		debuggerCommand.setText( mPref.getString( "gdb_command", "" ));
 		resolution.setChecked( mPref.getBoolean("resolution_fixed", false ) );
 		
 		DisplayMetrics metrics = new DisplayMetrics();
@@ -194,6 +201,9 @@ public class LauncherActivity extends Activity
 					case R.id.resolution:
 						hideResolutionSettings( !isChecked );
 					break;
+					case R.id.debugger:
+						hideDebuggerSettings( !isChecked );
+					break;
 					case R.id.use_rodir:
 						hideRodirSettings( !isChecked );
 					break;
@@ -212,6 +222,7 @@ public class LauncherActivity extends Activity
 		resolution.setOnCheckedChangeListener( checkListener );
 		useRoDir.setOnCheckedChangeListener( checkListener );
 		useRoDirAuto.setOnCheckedChangeListener( checkListener );
+		debugger.setOnCheckedChangeListener( checkListener );
 		
 		if( sdk >= 19 )
 		{
@@ -244,6 +255,7 @@ public class LauncherActivity extends Activity
 		FWGSLib.changeButtonsStyle((ViewGroup)tabHost.getParent());
 		hideResolutionSettings( !resolution.isChecked() );
 		hideRodirSettings( !useRoDir.isChecked() );
+		hideDebuggerSettings( !debugger.isChecked() );
 		updateResolutionResult();
 		toggleResolutionFields();
 		FWGSLib.cmp.applyPermissions( this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, REQUEST_PERMISSIONS );
@@ -293,6 +305,28 @@ public class LauncherActivity extends Activity
 	void hideRodirSettings( boolean hide )
 	{
 		rodirSettings.setVisibility( hide ? View.GONE : View.VISIBLE );
+	}
+	String getDebuggerCommand( String saved )
+	{
+		if( saved.length() == 0 )
+		{
+			return "logcat&HOME=/data/data/su.xash.engine/files/ FAKE_TTY=1 TERM=linux {GDB} {APP_PROCESS} -p {PID} 2>&1";
+		}
+		return saved;
+	}
+
+	void hideDebuggerSettings( boolean hide )
+	{
+		debuggerCommand.setVisibility( hide ? View.GONE : View.VISIBLE );
+		debuggerWait.setVisibility( hide ? View.GONE : View.VISIBLE );
+		if( !hide )
+			debuggerCommand.setText( getDebuggerCommand( mPref.getString( "gdb_command", "" )));
+		else if( debuggerCommand.getText().toString().length() != 0 )
+		{
+			SharedPreferences.Editor editor = mPref.edit();
+			editor.putString( "gdb_command", getDebuggerCommand( debuggerCommand.getText().toString() ));
+			editor.commit();
+		}
 	}
 		
 	TextWatcher resWidthTextChangeWatcher = new TextWatcher()
@@ -394,6 +428,9 @@ public class LauncherActivity extends Activity
 		editor.putFloat("resolution_scale", getResolutionScale() );
 		editor.putInt("resolution_width", getCustomEngineWidth() );
 		editor.putInt("resolution_height", getCustomEngineHeight() );
+		editor.putString( "gdb_command", getDebuggerCommand( debuggerCommand.getText().toString() ));
+		editor.putBoolean( "launch_gdb", debugger.isChecked() );
+		editor.putBoolean( "gdb_wait", debuggerWait.isChecked() );
 		
 		if( sdk >= 19 )
 			editor.putBoolean("immersive_mode", immersiveMode.isChecked());

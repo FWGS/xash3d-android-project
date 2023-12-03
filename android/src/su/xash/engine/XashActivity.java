@@ -588,7 +588,7 @@ public class XashActivity extends Activity {
 				e.printStackTrace();
 			}
 		}
-		if( mPref.getBoolean( "gdb_wait", false ))
+		if( mPref.getBoolean( "gdb_wait", false ) && mPref.getBoolean( "launch_gdb", false ) || intent.getStringExtra( "gdbwait" ) != null )
 			XashBinding.setenv( "XASH3D_GDB_WAIT", "1", true );
 		return true;
 	}
@@ -946,11 +946,17 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 				}
 			}, "EngineThread" );
 			mEngThread.start();
-			if( XashActivity.mPref.getBoolean( "launch_gdb", false ))
+			// allow override from intent
+			String launchgdb = XashActivity.mSingleton.getIntent().getStringExtra("launchgdb");
+			if( XashActivity.mPref.getBoolean( "launch_gdb", false ) || launchgdb != null )
 			{
 				XashActivity.fGDBSafe = true;
+				// if( launchgdb == null || launchgdb.Length() == 0 )
+				// todo: check if there is safe way to pass command with intent without whitelisting shell/terminals
+	//			launchgdb = XashActivity.mPref.getString("gdb_command", "cat 2>&1" );
 				Intent debugIntent = new Intent( XashActivity.mSingleton, DebugService.class );
 				debugIntent.putExtra( "PID", android.os.Process.myPid() );
+//				debugIntent.putExtra( "command", launchgdb );
 				FWGSLib.cmp.startForegroundService( XashActivity.mSingleton, debugIntent );
 			}
 		}

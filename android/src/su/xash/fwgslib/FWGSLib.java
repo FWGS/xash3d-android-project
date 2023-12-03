@@ -187,6 +187,63 @@ public class FWGSLib
 		return ret;
 	}
 
+	public static String readlink(String path) throws Exception
+	{
+		java.lang.Process process = Runtime.getRuntime().exec( new String [] { "/system/bin/sh", "-c", "TERM=vt100 ls -l \"" + path + "\" 2>/dev/null" });
+		InputStream reader = process.getInputStream();
+		char prev = '\0';
+		boolean found = false;
+		String output = "";
+		while(true)
+		{
+			try
+			{
+				int c = reader.read();
+				if( c <= 0 )break;
+				char ch = ( char )c;
+
+				if( found )
+				{
+					if( ch != '\n' )
+						output += ch;
+					else
+						while( reader.read() >= 0 ) continue;
+				}
+				else if( ch == '>' && prev == '-' && reader.read() == 0x20 )
+					found = true;
+				prev = ch;
+			}
+			catch( Exception e ){
+				e.printStackTrace();
+				break;
+			}
+		}
+		process.waitFor();
+		if( output.length() == 0)
+			throw new Exception();
+		return output;
+	}
+
+	public static String getAppProcessPath( int pid )
+	{
+		try{
+			/* NOTE: this does not work for current PID for some reason (process missing in procfs for child processes? thank you, google!),
+			but passing PID of other application process works */
+			return readlink( "/proc/" + pid + "/exe" );
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			String abi = cmp.getAbi();
+			if(abi.contains("64"))
+				return "/system/bin/app_process64";
+			else if(sdk >= 21)
+				return "/system/bin/app_process32";
+			else
+				return "/system/bin/app_process";
+		}
+	}
+
 	public static void changeButtonsStyle( ViewGroup parent )
 	{
 		if( sdk >= 21 )
@@ -270,6 +327,10 @@ public class FWGSLib
 		public void stopForeground( Service service, int notificationBehavior )
 		{
 		}
+		public String getAbi()
+		{
+			return "armeabi";
+		}
 	}
 	
 	static class Compat_9 extends Compat
@@ -290,6 +351,10 @@ public class FWGSLib
 		public void stopForeground( Service service, int notificationBehavior )
 		{
 			service.stopForeground( notificationBehavior == 1 );
+		}
+		public String getAbi()
+		{
+			return Build.CPU_ABI;
 		}
 
 	}
