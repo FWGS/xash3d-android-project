@@ -253,6 +253,10 @@ public class LauncherActivity extends Activity
 			new CheckUpdate(getBaseContext(),true, false).execute(UPDATE_LINK);
 		}
 		FWGSLib.changeButtonsStyle((ViewGroup)tabHost.getParent());
+		// strange layout bug
+		if(sdk < 11)
+			((ViewGroup.MarginLayoutParams)((ScrollView)findViewById( R.id.scrollView2 )).getLayoutParams()).setMargins(10,10,-10,10);
+
 		hideResolutionSettings( !resolution.isChecked() );
 		hideRodirSettings( !useRoDir.isChecked() );
 		hideDebuggerSettings( !debugger.isChecked() );
