@@ -207,7 +207,7 @@ class apkjni1(Task.Task):
 import zipfile,shutil
 class apkjni(Task.Task):
 	color = 'YELLOW'
-	compresslevel = 0
+	compresslevel = 9
 	jnifiles = {}
 
 	def runnable_status(self):
@@ -234,7 +234,7 @@ class apkjni(Task.Task):
 
 		shutil.copy2(self.inputs[0].abspath(), self.outputs[0].abspath())
 
-		with zipfile.ZipFile(outfile, mode='a', compression=comp) as zf:
+		with zipfile.ZipFile(outfile, mode='a', compression=comp,compresslevel=self.compresslevel) as zf:
 		
 			for src in self.inputs[1:]:
 				infile  = src.path_from(src.ctx.launch_node())

@@ -12,7 +12,11 @@ def options(opt):
 def configure(conf):
 	conf.load('android')
 	conf.env.D8_DEBUG = conf.options.BUILD_TYPE != 'release'
-	conf.find_program('objcopy')
+	conf.find_program('xz')
+	try:
+		conf.find_program('dwz')
+	except:
+		pass
 	# conf.load('java')
 	return
 
@@ -24,9 +28,34 @@ tgens = []
 jnifiles = {}
 
 class strip_task(Task.Task):
-	run_str = '${OBJCOPY} -g ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	run_str = '${OBJCOPY} --strip-all -R .comment ${SRC[0].abspath()} ${TGT[0].abspath()}'
 	def keyword(self):
 		return 'Stripping'
+
+class dwz_task(Task.Task):
+	run_str = '${DWZ} --odr --out ${TGT[0].abspath()} ${SRC[0].abspath()}'
+	def keyword(self):
+		return 'Optimizing debug'
+
+class dbg_task(Task.Task):
+	run_str = '${OBJCOPY} --only-keep-debug ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	def keyword(self):
+		return 'Optimizing debug'
+
+class dbgm_task(Task.Task):
+	run_str = '${OBJCOPY} -R .gdb_index -R .comment -R .hash -R .note.gnu.gold-version -R .got -R .dynamic -R .ARM.exidx -R .ARM.extab -R .plt -R .rel.plt -R .rel.dyn -R .dynsym -R .dynstr -R .ARM.attributes -R .init_array -R .data.rel.ro -R .fini_array -R .data.rel.ro.local -R .text -R .bss -R .data -R .rodata  ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	def keyword(self):
+		return 'Stripping unneeded sections'
+
+class xz_task(Task.Task):
+	run_str = '${XZ} -e9 < ${SRC[0].abspath()} > ${TGT[0].abspath()}'
+	def keyword(self):
+		return 'Compressing debug'
+
+class minidbg_task(Task.Task):
+	run_str = '${OBJCOPY} --add-section .gnu_debugdata=${SRC[1].abspath()} ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	def keyword(self):
+		return 'Adding .gnu_debugdata'
 
 def build(bld):
 	jni_dir = bld.root.get_bld().parent.make_node('lib')
@@ -44,11 +73,26 @@ def build(bld):
 	@TaskGen.after_method('apply_android_soname')
 	def copy_lib(self):
 		lib = self.link_task.outputs[0]
+		self.env.XZ = bld.env.XZ
+		self.env.DWZ = bld.env.DWZ
 		strip_output = lib.parent.make_node('lib' + self.name + '.stripped.so')
-		self.strip_task = self.create_task('strip_task', lib, strip_output)
-#		link_task =  self.link_task
-		link_task = self.strip_task
-		lib = strip_output
+		self.create_task('strip_task', lib, strip_output)
+		if self.env.DWZ:
+			dwz_output = lib.parent.make_node('lib' + self.name + '.dwz.so')
+			self.create_task('dwz_task', lib, dwz_output)
+			dbg_input = dwz_output
+		else:
+			dbg_input = lib
+		dbg_output = lib.parent.make_node('lib' + self.name + '.dbg')
+		self.create_task('dbg_task', dbg_input, dbg_output)
+		dbgm_output = lib.parent.make_node('lib' + self.name + '.dbgm')
+		self.create_task('dbgm_task', dbg_output, dbgm_output)
+		xz_output = lib.parent.make_node('lib' + self.name + '.dbgm.xz')
+		self.create_task('xz_task', dbgm_output, xz_output)
+		minidbg_output = lib.parent.make_node('lib' + self.name + '.minidbg.so')
+		self.create_task('minidbg_task', [strip_output, xz_output], minidbg_output)
+
+		lib = minidbg_output
 		libs.append(lib)
 		tgens.append(self.name)
 		jnifiles[lib] = self.install_path + '/lib' + self.name + '.so'
