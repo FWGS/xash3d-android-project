@@ -223,6 +223,65 @@ public class FWGSLib
 			throw new Exception();
 		return output;
 	}
+	public static byte[] getPermsBuffer(String path) throws Exception
+	{
+		String cmd = "TERM=vt100 ls -l \"" + path + "\" 2>/dev/null";
+		Log.d("exec", cmd );
+		java.lang.Process process = Runtime.getRuntime().exec( new String [] { "/system/bin/sh", "-c", cmd });
+		InputStream reader = process.getInputStream();
+		byte[] perms = new byte[10]; // drwxrwxrwx
+		reader.read(perms);
+		Log.d("exec", "result: "+ new String(perms) );
+		process.waitFor();
+		return perms;
+	}
+	public static boolean canExecute(String path)
+	{
+		try{
+			byte[] perms = getPermsBuffer(path);
+			return perms[3] == (byte)'x';
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return true;
+		}
+	}
+
+	public static int chmod(String path, int mode)
+	{
+		try {
+			String cmd = "chmod " + Integer.toOctalString( mode ) + " \"" + path + "\"";
+			Log.d("exec", cmd );
+			java.lang.Process process = Runtime.getRuntime().exec( new String [] { "/system/bin/sh", "-c", cmd });
+			return process.waitFor();
+		} catch(Exception e)
+		{
+			e.printStackTrace();
+			return 127;
+		}
+	}
+	public static String execFallback(Context ctx, String path)
+	{
+		try
+		{
+			if( canExecute( path ) )
+				return path;
+			if( chmod( path, 0777 ) == 0 && canExecute(path) )
+				return path;
+		}
+		catch(Exception e){ e.printStackTrace();}
+		try{
+			String fallback = ctx.getFilesDir().getPath() + '/' + path.substring(path.lastIndexOf('/')+1);
+			String cmd = "cat \"" + path + "\" > \"" + fallback +"\";chmod 777 \"" + fallback+ "\"";
+			Log.d("exec", cmd );
+			java.lang.Process process = Runtime.getRuntime().exec( new String [] { "/system/bin/sh", "-c", cmd });
+			if(process.waitFor() == 0 && canExecute( fallback ))
+				return fallback;
+		}
+		catch( Exception e){ e.printStackTrace();}
+		return path;
+	}
 
 	public static String getAppProcessPath( int pid )
 	{

@@ -190,7 +190,8 @@ public class DebugService extends XashService
 		java.lang.Process process;
 		try {
 			SharedPreferences pref = getSharedPreferences( "engine", 0 );
-			String command = pref.getString("gdb_command", "cat 2>&1").replace( "{GDB}", FWGSLib.cmp.getNativeLibDir( this ) + "/libgdb.so" ).replace( "{PID}", String.valueOf( mPid )).replace( "{APP_PROCESS}", FWGSLib.getAppProcessPath( mPid ));
+			String gdbpath =  FWGSLib.execFallback(this, FWGSLib.cmp.getNativeLibDir( this ) + "/libgdb.so");
+			String command = pref.getString("gdb_command", "cat 2>&1").replace( "{GDB}", gdbpath ).replace( "{PID}", String.valueOf( mPid )).replace( "{APP_PROCESS}", FWGSLib.getAppProcessPath( mPid ));
 			process = Runtime.getRuntime().exec( new String[]{ "/system/bin/sh", "-c", command });
 			OutputStream termOut = process.getOutputStream();
 			InputStream termIn = process.getInputStream();
