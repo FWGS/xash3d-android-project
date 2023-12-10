@@ -44,7 +44,9 @@ from waflib import TaskGen, Task, Build, Logs
 libs = []
 tgens = []
 jnifiles = {}
-
+REMOVE_SECTIONS_COMMON='-R .gdb_index -R .eh_frame_hdr -R .eh_frame -R .got.plt -R .comment -R .hash -R .note.gnu.gold-version -R .got -R .dynamic -R .ARM.exidx -R .ARM.extab -R .plt -R .rel.plt -R .rel.dyn -R .rela.dyn -R .rela.plt -R .dynsym -R .dynstr -R .ARM.attributes -R .init_array -R .data.rel.ro -R .data.rel.ro.local -R .fini_array -R .bss -R .data -R .rodata'.split(' ')
+REMOVE_SECTIONS_CLANG = []
+REMOVE_SECTIONS_GCC = ['-R', '.text']
 class strip_task(Task.Task):
 	run_str = '${OBJCOPY} ${STRIPFLAGS} -R .comment ${SRC[0].abspath()} ${TGT[0].abspath()}'
 	vars = ['OBJCOPY', 'STRIPFLAGS']
@@ -62,7 +64,9 @@ class dbg_task(Task.Task):
 		return 'Splitting debug'
 
 class dbgm_task(Task.Task):
-	run_str = '${OBJCOPY} -R .gdb_index -R .comment -R .hash -R .note.gnu.gold-version -R .got -R .dynamic -R .ARM.exidx -R .ARM.extab -R .plt -R .rel.plt -R .rel.dyn -R .rela.dyn -R .rela.plt -R .dynsym -R .dynstr -R .ARM.attributes -R .init_array -R .data.rel.ro -R .fini_array -R .data.rel.ro.local -R .text -R .bss -R .data -R .rodata  ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	run_str = '${OBJCOPY} ${REMOVE_SECTIONS} ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	vars = ['OBJCOPY', 'REMOVE_SECTIONS']
+	
 	def keyword(self):
 		return 'Stripping unneeded sections'
 
@@ -112,6 +116,12 @@ def build(bld):
 		self.env.XZ = local_env.XZ
 		self.env.DWZ = local_env.DWZ
 		self.env.STRIPFLAGS = local_env.STRIPFLAGS
+		self.env.REMOVE_SECTIONS = REMOVE_SECTIONS_COMMON
+		if self.env.CC_NAME == 'clang':
+			# gdb don't need .text section on arm
+			self.env.REMOVE_SECTIONS += REMOVE_SECTIONS_CLANG
+		else:
+			self.env.REMOVE_SECTIONS += REMOVE_SECTIONS_GCC
 		last_task = self.link_task
 		if local_env.DISABLE_STRIP:
 			strip_output = lib
