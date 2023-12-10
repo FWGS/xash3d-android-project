@@ -40,7 +40,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-		<activity android:name="su.xash.engine.Term"
+		<!--<activity android:name="su.xash.engine.Term"
 			android:screenOrientation="sensorLandscape"
 			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize"
 			android:label="XashTerm"
@@ -52,7 +52,7 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<action android:name="android.intent.action.MAIN" />
 			</intent-filter>
-		</activity> 
+		</activity> -->
 		<activity android:name="su.xash.engine.XashActivity"
 			android:screenOrientation="sensorLandscape"
 			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize"
