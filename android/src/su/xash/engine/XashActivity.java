@@ -954,7 +954,7 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 				// if( launchgdb == null || launchgdb.Length() == 0 )
 				// todo: check if there is safe way to pass command with intent without whitelisting shell/terminals
 	//			launchgdb = XashActivity.mPref.getString("gdb_command", "cat 2>&1" );
-				Intent debugIntent = new Intent( XashActivity.mSingleton, DebugService.class );
+				Intent debugIntent = new Intent().setComponent(new android.content.ComponentName("su.xash.engine", "su.xash.engine.DebugService"));
 				debugIntent.putExtra( "PID", android.os.Process.myPid() );
 //				debugIntent.putExtra( "command", launchgdb );
 				FWGSLib.cmp.startForegroundService( XashActivity.mSingleton, debugIntent );
