@@ -1,0 +1,3 @@
+[submodule "xash3d-prebuilts"]
+	path = xash3d-prebuilts
+	url = https://github.com/mittorn/xash3d-prebuilts

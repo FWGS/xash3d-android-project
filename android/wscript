@@ -16,6 +16,8 @@ def options(opt):
 		help = 'Do not split symbols at all')
 	grp.add_option('--enable-gdb', action='store_true', dest='ENABLE_GDB', default = False,
 		help = 'Package GDB')
+	grp.add_option('--enable-dwz', action='store_true', dest='ENABLE_DWZ', default = False,
+		help = 'Optimize dwarf')
 
 	return
 
@@ -29,6 +31,7 @@ def configure(conf):
 	conf.env.DISABLE_STRIP = conf.options.DISABLE_STRIP
 	conf.env.ENABLE_MINIDBG = conf.options.ENABLE_MINIDBG
 	conf.env.ENABLE_GDB = conf.options.ENABLE_GDB
+	conf.env.ENABLE_DWZ = conf.options.ENABLE_DWZ
 	if conf.options.STRIP_ALL:
 		conf.env.STRIPFLAGS = '--strip-all'
 	else:
@@ -59,7 +62,7 @@ class dbg_task(Task.Task):
 		return 'Splitting debug'
 
 class dbgm_task(Task.Task):
-	run_str = '${OBJCOPY} -R .gdb_index -R .comment -R .hash -R .note.gnu.gold-version -R .got -R .dynamic -R .ARM.exidx -R .ARM.extab -R .plt -R .rel.plt -R .rel.dyn -R .dynsym -R .dynstr -R .ARM.attributes -R .init_array -R .data.rel.ro -R .fini_array -R .data.rel.ro.local -R .text -R .bss -R .data -R .rodata  ${SRC[0].abspath()} ${TGT[0].abspath()}'
+	run_str = '${OBJCOPY} -R .gdb_index -R .comment -R .hash -R .note.gnu.gold-version -R .got -R .dynamic -R .ARM.exidx -R .ARM.extab -R .plt -R .rel.plt -R .rel.dyn -R .rela.dyn -R .rela.plt -R .dynsym -R .dynstr -R .ARM.attributes -R .init_array -R .data.rel.ro -R .fini_array -R .data.rel.ro.local -R .text -R .bss -R .data -R .rodata  ${SRC[0].abspath()} ${TGT[0].abspath()}'
 	def keyword(self):
 		return 'Stripping unneeded sections'
 
@@ -74,8 +77,6 @@ class minidbg_task(Task.Task):
 		return 'Adding .gnu_debugdata'
 
 def build(bld):
-	jni_dir = bld.root.get_bld().parent.make_node('lib')
-	arch_dir = jni_dir.make_node("arm64-v8a")
 	tsk = bld(features = 'android javac',
 		srcdir = 'src',
 		compat = '1.6',
@@ -87,6 +88,23 @@ def build(bld):
 #	if hasattr(bld,'write_compilation_database'):
 #		return
 	local_env = bld.env
+	prebuilts_target = 'armeabi' if bld.env.DEST_CPU == 'arm' else 'arm64-v8a'
+	fileserver_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libfileserver.so')
+	#print(fileserver_node)
+	libs.append(fileserver_node)
+	jnifiles[fileserver_node] = bld.env.PREFIX + '/libfileserver.so'
+
+	if local_env.ENABLE_GDB:
+		gdb_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libgdb.so')
+		libs.append(gdb_node)
+		jnifiles[gdb_node] = bld.env.PREFIX + '/libgdb.so'
+	@TaskGen.feature('zip')
+	@TaskGen.after_method('create_zip_archive')
+	def copy_zip(self):
+		f = self.zip_task.outputs[0]
+		libs.append(f)
+		jnifiles[f] = 'assets/extras.pk3'
+
 	@TaskGen.feature('cshlib','cxxshlib')
 	@TaskGen.after_method('apply_android_soname')
 	def copy_lib(self):
@@ -100,7 +118,7 @@ def build(bld):
 		else:
 			strip_output = lib.parent.make_node('lib' + self.name + '.stripped.so')
 			last_task = self.create_task('strip_task', lib, strip_output)
-		if local_env.DWZ:
+		if local_env.DWZ and local_env.ENABLE_DWZ:
 			dwz_output = lib.parent.make_node('lib' + self.name + '.dwz.so')
 			self.create_task('dwz_task', lib, dwz_output)
 			dbg_input = dwz_output
