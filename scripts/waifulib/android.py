@@ -154,7 +154,7 @@ class aaptpackage(javaw.JTask):
 			self.inputs = resdir.ant_glob('**/*', quiet=True) + [root.make_node(self.env.MANIFEST)]
 
 		return super(aaptpackage, self).runnable_status()
-
+import fnmatch
 class DexerTask(javaw.JTask): # base dexer
 	color = 'GREEN'
 
@@ -164,7 +164,19 @@ class DexerTask(javaw.JTask): # base dexer
 				return Task.ASK_LATER
 
 		if not self.inputs:
-			self.inputs = self.generator.outdir.ant_glob('**/*.class', quiet=True)
+			exclude_classes = self.generator.exclude_classes
+			inputs = self.generator.outdir.ant_glob('**/*.class', quiet=True)
+			self.inputs = []
+			for i in inputs:
+				match = False
+				for p in exclude_classes:
+					if fnmatch.fnmatch(i.name, p):
+						match = True
+						break
+				if not match:
+					self.inputs.append(i)
+				else:
+					print(i.name)
 
 		return super(DexerTask, self).runnable_status()
 
@@ -289,6 +301,7 @@ def apply_aapt(self):
 		outdir = self.path.get_bld()
 	outdir.mkdir()
 	self.outdir = outdir
+	self.exclude_classes = getattr(self, 'exclude_classes', [])
 
 	srcdir = self.path.find_dir('.')
 	sdk = self.env.ANDROID_SDK_HOME_ENV
