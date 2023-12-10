@@ -29,9 +29,9 @@ public class InstallReceiver extends BroadcastReceiver {
 			{
 				if( mPref.getInt( "pakversion", 0 ) == PAK_VERSION && !force )
 					return;
-				String path = context.getFilesDir().getPath()+"/extras.pak";
+				String path = context.getFilesDir().getPath()+"/extras.pk3";
 
-				is = context.getAssets().open("extras.pak");
+				is = context.getAssets().open("extras.pk3");
 				os = new FileOutputStream(path);
 				byte[] buffer = new byte[1024];
 				int length;

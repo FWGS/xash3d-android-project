@@ -63,7 +63,7 @@ public class ShortcutActivity extends Activity
 		if(pkgname.length() != 0)
 		{
 			intent.putExtra("gamelibdir", "/data/data/"+pkgname.getText().toString().replace("!","in.celest.xash3d.")+"/lib/");
-			intent.putExtra("pakfile", "/data/data/"+pkgname.getText().toString().replace("!","in.celest.xash3d.")+"/files/extras.pak");
+			intent.putExtra("pakfile", "/data/data/"+pkgname.getText().toString().replace("!","in.celest.xash3d.")+"/files/extras.pk3");
 		}
 		if(gamedir.length() != 0) intent.putExtra("gamedir",gamedir.getText().toString());
 		if(env != null)

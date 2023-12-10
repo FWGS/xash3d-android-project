@@ -564,8 +564,8 @@ public class XashActivity extends Activity {
 		XashBinding.setenv( "XASH3D_ENGLIBDIR",  enginedir,  true );
 		XashBinding.setenv( "XASH3D_GAMELIBDIR", gamelibdir, true );
 		XashBinding.setenv( "XASH3D_GAMEDIR",    gamedir,    true );
-		XashBinding.setenv( "XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pak", true );
-		Log.d( TAG, "enginepak = " + getFilesDir().getPath() + "/extras.pak" );
+		XashBinding.setenv( "XASH3D_EXTRAS_PAK1", getFilesDir().getPath() + "/extras.pk3", true );
+		Log.d( TAG, "enginepak = " + getFilesDir().getPath() + "/extras.pk3" );
 		
 		String pakfile = intent.getStringExtra( "pakfile" );
 		if( pakfile != null && pakfile != "" )
