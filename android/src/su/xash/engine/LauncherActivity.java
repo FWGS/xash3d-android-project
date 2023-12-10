@@ -314,7 +314,7 @@ public class LauncherActivity extends Activity
 	{
 		if( saved.length() == 0 )
 		{
-			return "logcat&HOME=/data/data/su.xash.engine/files/ FAKE_TTY=1 TERM=linux {GDB} {APP_PROCESS} -p {PID} 2>&1";
+			return "logcat&HOME=\""+getFilesDir().getPath()+"\" LD_LIBRARY_PATH=\""+FWGSLib.cmp.getNativeLibDir(this)+":$LD_LIBRARY_PATH\" FAKE_TTY=1 TERM=linux {GDB} {APP_PROCESS} -p {PID} 2>&1";
 		}
 		return saved;
 	}
