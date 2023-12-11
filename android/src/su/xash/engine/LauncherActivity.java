@@ -453,40 +453,35 @@ public class LauncherActivity extends Activity
 	public void aboutXash(View view)
 	{
 		final Activity a = this;
-		this.runOnUiThread(new Runnable() 
-		{
-			public void run()
-			{
-				final Dialog dialog = new Dialog(a);
-				dialog.setContentView(R.layout.about);
-				dialog.setCancelable(true);
-				dialog.show();
-/*				if( sdk > 17 )
-				{
-					ImageView icon = (ImageView) dialog.findViewById(R.id.aboutIcon);
-					icon.setImageDrawable(getResources().getDrawable(R.mipmap.ic_launcher));
-				}
-*/
-				TextView tView6 = (TextView) dialog.findViewById(R.id.textView6);
-				tView6.setMovementMethod(LinkMovementMethod.getInstance());
-				((Button)dialog.findViewById( R.id.button_about_ok )).setOnClickListener(new View.OnClickListener(){
-	       			@Override
-	    			public void onClick(View v) {
-	    				dialog.cancel();
-					}
-				});
-				((Button)dialog.findViewById( R.id.show_firstrun )).setOnClickListener(new View.OnClickListener(){
-						@Override
-						public void onClick(View v) {
-							dialog.cancel();
-							Intent intent = new Intent(a, XashTutorialActivity.class);
-							startActivity(intent);
-						}
-					});
-				FWGSLib.changeButtonsStyle((ViewGroup)dialog.findViewById( R.id.show_firstrun ).getParent());
 
+		final Dialog dialog = new Dialog(a);
+		dialog.setContentView(R.layout.about);
+		dialog.setCancelable(true);
+		dialog.show();
+		/*if( sdk > 17 )
+		{
+			ImageView icon = (ImageView) dialog.findViewById(R.id.aboutIcon);
+			icon.setImageDrawable(getResources().getDrawable(R.mipmap.ic_launcher));
+		}*/
+
+		TextView tView6 = (TextView) dialog.findViewById(R.id.textView6);
+		tView6.setMovementMethod(LinkMovementMethod.getInstance());
+		((Button)dialog.findViewById( R.id.button_about_ok )).setOnClickListener(new View.OnClickListener(){
+			@Override
+			public void onClick(View v) {
+				dialog.cancel();
 			}
 		});
+		((Button)dialog.findViewById( R.id.show_firstrun )).setOnClickListener(new View.OnClickListener(){
+				@Override
+				public void onClick(View v) {
+					dialog.cancel();
+					Intent intent = new Intent(a, XashTutorialActivity.class);
+					startActivity(intent);
+				}
+			});
+		FWGSLib.changeButtonsStyle((ViewGroup)dialog.findViewById( R.id.show_firstrun ).getParent());
+
 	}
 
 	int m_iFirstRunCounter = 0;
