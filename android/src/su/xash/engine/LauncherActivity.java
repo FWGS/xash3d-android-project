@@ -126,6 +126,10 @@ public class LauncherActivity extends Activity
 			{
 				switch(v.getId())
 				{
+
+					case R.id.button_manage_files:
+						showFileServer(v);
+					break;
 					case R.id.cmd_path_rw_select:
 						selectRwFolder(v);
 						break;
@@ -149,8 +153,9 @@ public class LauncherActivity extends Activity
 		(( Button ) findViewById( R.id.button_launch )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_shortcut )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_about )).setOnClickListener(buttonListener);
-		(( Button ) findViewById( R.id.cmd_path_select)).setOnClickListener(buttonListener);
-		(( Button ) findViewById( R.id.cmd_path_rw_select)).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.cmd_path_select )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.cmd_path_rw_select )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_manage_files )).setOnClickListener(buttonListener);
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
@@ -419,11 +424,11 @@ public class LauncherActivity extends Activity
 		return FWGSLib.atoi( resWidth.getText().toString(), mEngineWidth );
 	}
 	
-    public void startXash(View view)
-    {
+	public void startXash(View view)
+	{
 		Intent intent = new Intent(this, XashActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
+	
 		SharedPreferences.Editor editor = mPref.edit();
 		editor.putString("argv", cmdArgs.getText().toString());
 		editor.putBoolean("usevolume",useVolume.isChecked());
@@ -448,7 +453,17 @@ public class LauncherActivity extends Activity
 			editor.putBoolean("immersive_mode", false); // just in case...
 		editor.commit();
 		startActivity(intent);
-    }
+	}
+
+	public void showFileServer(View view)
+	{
+		final Activity a = this;
+
+		final Dialog dialog = new Dialog(a);
+		dialog.setContentView(R.layout.fileserver);
+		//dialog.setCancelable(false);
+		dialog.show();
+	}
 
 	public void aboutXash(View view)
 	{
@@ -481,7 +496,6 @@ public class LauncherActivity extends Activity
 				}
 			});
 		FWGSLib.changeButtonsStyle((ViewGroup)dialog.findViewById( R.id.show_firstrun ).getParent());
-
 	}
 
 	int m_iFirstRunCounter = 0;
