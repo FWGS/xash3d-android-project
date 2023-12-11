@@ -126,7 +126,11 @@ public class LauncherActivity extends Activity
 			{
 				switch(v.getId())
 				{
+					case R.id.cmd_path_rw_select:
+						selectRwFolder(v);
+						break;
 					case R.id.button_select:
+					case R.id.cmd_path_select:
 						selectFolder(v);
 					break;
 					case R.id.button_launch:
@@ -145,6 +149,8 @@ public class LauncherActivity extends Activity
 		(( Button ) findViewById( R.id.button_launch )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_shortcut )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_about )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.cmd_path_select)).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.cmd_path_rw_select)).setOnClickListener(buttonListener);
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
@@ -494,6 +500,7 @@ public class LauncherActivity extends Activity
 	public void selectFolder(View view)
 	{
 		Intent intent = new Intent(this, su.xash.engine.FPicker.class);
+		intent.putExtra("path",resPath.getText().toString());
 		startActivityForResult(intent, ID_SELECT_FOLDER);
 		resPath.setEnabled(false);
 		XashActivity.setFolderAsk( this, false );

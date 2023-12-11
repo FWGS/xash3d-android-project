@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Button;
+import android.widget.ToggleButton;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -36,9 +37,11 @@ import su.xash.engine.R;
 public class FPicker extends Activity {
     private File currentDir;
     private FileArrayAdapter adapter;
+	private boolean internal = false;
     static ListView delta;
     public static final int sdk = Integer.valueOf(Build.VERSION.SDK);
     static private Button mSelectBtn;
+	static private ToggleButton mToggleBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,22 +51,48 @@ public class FPicker extends Activity {
 		else super.setTheme( 0x01030005 );
 
 		setContentView( R.layout.activity_fpicker );
-		String path = Environment.getExternalStorageDirectory().toString();
+		String path = getIntent().getStringExtra("path");
+		if( path == null )
+			Environment.getExternalStorageDirectory().toString();
 		currentDir = new File( path );
-		mSelectBtn = ((Button)findViewById( R.id.button_fpicker_select ));
-		mSelectBtn.setOnClickListener(new View.OnClickListener()
+		View.OnClickListener buttonListener = new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View v) 
 			{
-				onFileClick(v);
+				switch(v.getId())
+				{
+					case R.id.button_fpicker_select:
+						onFileClick(v);
+						break;
+					case R.id.button_internal_storage:
+						toggleInternalStorage(v);
+						break;
+				}
 			}
-		});
+		};
+		mSelectBtn = ((Button)findViewById( R.id.button_fpicker_select ));
+		mSelectBtn.setOnClickListener(buttonListener);
+		mToggleBtn = ((ToggleButton)findViewById( R.id.button_internal_storage));
+		mToggleBtn.setOnClickListener(buttonListener);
+		internal = path.indexOf("/data") == 0;
+		mToggleBtn.setChecked(internal);
 
 		FWGSLib.changeButtonsStyle((ViewGroup)mSelectBtn.getParent());
 
 		fill(currentDir);
     }
+	private void toggleInternalStorage(View v)
+	{
+		internal = mToggleBtn.isChecked();
+		if(internal)
+			currentDir = getFilesDir();
+		else
+			currentDir = new File(Environment.getExternalStorageDirectory().toString());
+		fill(currentDir);
+		if(internal)
+			Toast.makeText(this, "Internal storage data selected\nuse file server to upload files", Toast.LENGTH_SHORT).show();
+	}
 
     private void fill(File folder)
     {
