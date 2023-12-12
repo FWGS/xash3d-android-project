@@ -144,6 +144,7 @@ public class XashActivity extends Activity {
 			Log.v( TAG, "folderask == true. Opening FPicker..." );
 		
 			Intent intent = new Intent( this, su.xash.engine.FPicker.class );
+			intent.putExtra( "path", mPref.getString( "basedir", "/sdcard/" ));
 			startActivityForResult( intent, FPICKER_RESULT );
 		}
 		else
@@ -211,6 +212,17 @@ public class XashActivity extends Activity {
 			{
 				String newBaseDir = resultData.getStringExtra( "GetPath" );
 				setNewBasedir( newBaseDir );
+				if( resultData.getBooleanExtra( "startServer", false ))
+				{
+					Intent intent1 = new Intent( this, LauncherActivity.class);
+					intent1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent1.putExtra( "startServer", true );
+					startActivity(intent1);
+					mReturingWithResultCode = 0;
+					finish();
+					return;
+				}
 				setFolderAsk( this, false ); // don't ask on next run
 				Log.v( TAG, "Got new basedir from FPicker: " + newBaseDir );
 			}

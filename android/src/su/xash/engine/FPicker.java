@@ -2,8 +2,10 @@ package su.xash.engine;
 //Created by Solexid
 import android.app.Activity;
 import android.app.ListActivity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -53,7 +55,7 @@ public class FPicker extends Activity {
 		setContentView( R.layout.activity_fpicker );
 		String path = getIntent().getStringExtra("path");
 		if( path == null )
-			Environment.getExternalStorageDirectory().toString();
+			path = Environment.getExternalStorageDirectory().toString();
 		currentDir = new File( path );
 		View.OnClickListener buttonListener = new View.OnClickListener()
 		{
@@ -80,7 +82,7 @@ public class FPicker extends Activity {
 
 		FWGSLib.changeButtonsStyle((ViewGroup)mSelectBtn.getParent());
 
-		fill(currentDir);
+		fill( currentDir, false );
     }
 	private void toggleInternalStorage(View v)
 	{
@@ -89,24 +91,26 @@ public class FPicker extends Activity {
 			currentDir = getFilesDir();
 		else
 			currentDir = new File(Environment.getExternalStorageDirectory().toString());
-		fill(currentDir);
+		fill( currentDir, internal );
 		if(internal)
 			Toast.makeText(this, "Internal storage data selected\nuse file server to upload files", Toast.LENGTH_SHORT).show();
 	}
 
-    private void fill(File folder)
+    private void fill( File folder, boolean warnEmpty )
     {
 		mSelectBtn.setEnabled( false );
-		new Fill(folder).execute();
+		new Fill(folder, warnEmpty).execute();
     }
     
     private class Fill extends AsyncTask<Void, Void, List<Item>> 
     {
 		File folder;
+		boolean warnEmpty;
     
-		public Fill(File f)
+		public Fill( File f, boolean w )
 		{
 			folder = f;
+			warnEmpty = w;
 		}
 		
 		protected List<Item> doInBackground(Void... voids)
@@ -151,6 +155,7 @@ public class FPicker extends Activity {
 
 			if(folder.getPath().length() > 1)
 				dir.add(0, new Item( "..", getString(R.string.parent_directory), "", folder.getParent(), R.drawable.folder));
+			else internal = false;
 				
 			return dir;
 		}
@@ -169,20 +174,53 @@ public class FPicker extends Activity {
 				{
 					Item o = adapter.getItem(position);
 					currentDir = new File(o.getPath());
-					fill(currentDir);
+					fill( currentDir, false );
 				}
 			});
 			FPicker.mSelectBtn.setEnabled( true );
+			if( warnEmpty && dir.size() == 1 )
+				onFileClick(null);
 		}
     }
-    
-	public void onFileClick(View v)
+	private void returnResult( boolean startServer )
 	{
 		Toast.makeText(this, getString(R.string.chosen_path) + " " + currentDir, Toast.LENGTH_SHORT).show();
 		Intent intent = new Intent();
 		intent.putExtra("GetPath",currentDir.toString());
+		intent.putExtra( "startServer", startServer );
 		setResult(RESULT_OK, intent);
 		finish();
+	}
+    
+	public void onFileClick(View v)
+	{
+		if( internal && !getIntent().getBooleanExtra( "dontWarnEmpty", false ))
+		{
+			final boolean fromButton = v != null;
+			DialogInterface.OnClickListener startServerAsk = new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick( DialogInterface dialog, int whichButton ) 
+				{
+					if( fromButton )
+					{
+						returnResult( whichButton == DialogInterface.BUTTON_POSITIVE );
+					}
+					else if( whichButton == DialogInterface.BUTTON_POSITIVE )
+						returnResult( true );
+				}
+			};
+			
+			new AlertDialog.Builder( this )
+				.setTitle( "Internal folder" )
+				.setMessage( "Internal folder selected.\nStart file server to manage files now? You can start it with \"Manage files\" button later" )
+				.setPositiveButton( "Yes", startServerAsk )
+				.setNegativeButton( "Not now", startServerAsk )
+				.setCancelable( true )
+				.show();
+			return;
+		}
+		returnResult( false );
 	}
 }
 

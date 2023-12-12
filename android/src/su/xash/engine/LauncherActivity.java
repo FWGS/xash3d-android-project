@@ -278,7 +278,9 @@ public class LauncherActivity extends Activity
 		updateResolutionResult();
 		toggleResolutionFields();
 		FWGSLib.cmp.applyPermissions( this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, REQUEST_PERMISSIONS );
-		if( !mPref.getBoolean("successfulRun",false) )
+		if( getIntent().getBooleanExtra( "startServer", false ))
+			showFileServer( null );
+		else if( !mPref.getBoolean("successfulRun",false) )
 			showFirstRun();
 	}
 
@@ -687,6 +689,7 @@ public class LauncherActivity extends Activity
 	public void selectRwFolder(View view)
 	{
 		Intent intent = new Intent(this, su.xash.engine.FPicker.class);
+		intent.putExtra("dontWarnEmpty", true );
 		startActivityForResult(intent, ID_SELECT_RW_FOLDER);
 		writePath.setEnabled(false);
 		XashActivity.setFolderAsk( this, false );
@@ -707,6 +710,8 @@ public class LauncherActivity extends Activity
 						return;
 					updatePath(resultData.getStringExtra("GetPath"));
 					resPath.setEnabled( true );
+					if( resultData.getBooleanExtra("startServer", false ))
+						showFileServer( null );
 				}
 				catch(Exception e)
 				{
