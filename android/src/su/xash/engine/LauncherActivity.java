@@ -20,7 +20,8 @@ import org.json.*;
 import android.preference.*;
 import su.xash.fwgslib.*;
 import android.Manifest;
-
+import java.util.Enumeration;
+import java.util.ArrayList;
 
 public class LauncherActivity extends Activity
 {
@@ -40,7 +41,68 @@ public class LauncherActivity extends Activity
 	
 	static int mEngineWidth, mEngineHeight;
 	final static int REQUEST_PERMISSIONS = 42;
+	private View.OnClickListener buttonListener = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) 
+		{
+			switch(v.getId())
+			{
+				case R.id.button_fileserver:
+				case R.id.button_manage_files:
+					showFileServer(v);
+				break;
+				case R.id.cmd_path_rw_select:
+					selectRwFolder(v);
+					break;
+				case R.id.button_select:
+				case R.id.cmd_path_select:
+					selectFolder(v);
+				break;
+				case R.id.button_launch:
+					startXash(v);
+				break;
+				case R.id.button_shortcut:
+					createShortcut(v);
+				break;
+				case R.id.button_about:
+					aboutXash(v);
+				break;
+			}
+		}
+	};
 
+	private CompoundButton.OnCheckedChangeListener checkListener = new CompoundButton.OnCheckedChangeListener()
+	{
+		@Override
+		public void onCheckedChanged( CompoundButton v, boolean isChecked )
+		{
+			switch( v.getId() )
+			{
+				case R.id.toggle_file_server:
+					toggleFileServer(v, isChecked);
+				case R.id.resolution_custom_r:
+					updateResolutionResult();
+					toggleResolutionFields();
+				break;
+				case R.id.resolution:
+					hideResolutionSettings( !isChecked );
+				break;
+				case R.id.debugger:
+					hideDebuggerSettings( !isChecked );
+				break;
+				case R.id.use_rodir:
+					hideRodirSettings( !isChecked );
+				break;
+				case R.id.use_rodir_auto:
+					if( isChecked )
+					{
+						writePath.setText( FWGSLib.getExternalFilesDir( LauncherActivity.this ) );
+					}
+					writePath.setEnabled( !isChecked );
+				break;
+			}
+		}
+	};
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -120,35 +182,7 @@ public class LauncherActivity extends Activity
 		debuggerWait = (CheckBox) findViewById( R.id.debugger_wait );
 
 		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
-		View.OnClickListener buttonListener = new View.OnClickListener() {
-			@Override
-			public void onClick(View v) 
-			{
-				switch(v.getId())
-				{
 
-					case R.id.button_manage_files:
-						showFileServer(v);
-					break;
-					case R.id.cmd_path_rw_select:
-						selectRwFolder(v);
-						break;
-					case R.id.button_select:
-					case R.id.cmd_path_select:
-						selectFolder(v);
-					break;
-					case R.id.button_launch:
-						startXash(v);
-					break;
-					case R.id.button_shortcut:
-						createShortcut(v);
-					break;
-					case R.id.button_about:
-						aboutXash(v);
-					break;
-				}
-			}
-		};
 		(( Button ) findViewById( R.id.button_select )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_launch )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_shortcut )).setOnClickListener(buttonListener);
@@ -156,6 +190,7 @@ public class LauncherActivity extends Activity
 		(( Button ) findViewById( R.id.cmd_path_select )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.cmd_path_rw_select )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_manage_files )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_fileserver )).setOnClickListener(buttonListener);
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
@@ -197,37 +232,6 @@ public class LauncherActivity extends Activity
 		if( mPref.getBoolean("resolution_custom", false) )
 			radioCustom.setChecked(true);
 		else radioScale.setChecked(true);
-
-		CompoundButton.OnCheckedChangeListener checkListener = new CompoundButton.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged( CompoundButton v, boolean isChecked )
-			{
-				switch( v.getId() )
-				{
-					case R.id.resolution_custom_r:
-						updateResolutionResult();
-						toggleResolutionFields();
-					break;
-					case R.id.resolution:
-						hideResolutionSettings( !isChecked );
-					break;
-					case R.id.debugger:
-						hideDebuggerSettings( !isChecked );
-					break;
-					case R.id.use_rodir:
-						hideRodirSettings( !isChecked );
-					break;
-					case R.id.use_rodir_auto:
-						if( isChecked )
-						{
-							writePath.setText( FWGSLib.getExternalFilesDir( LauncherActivity.this ) );
-						}
-						writePath.setEnabled( !isChecked );
-					break;
-				}
-			}
-		};
 		
 		radioCustom.setOnCheckedChangeListener( checkListener );
 		resolution.setOnCheckedChangeListener( checkListener );
@@ -454,22 +458,187 @@ public class LauncherActivity extends Activity
 		editor.commit();
 		startActivity(intent);
 	}
-
-	public void showFileServer(View view)
+	private Dialog fileServerDialog;
+	private TextView ipInfo;
+	private ToggleButton fileServerToggle;
+	private void toggleFileServer(View v, boolean checked)
 	{
-		final Activity a = this;
+		fileServerDialog.setCancelable(!checked);
+	} 
 
-		final Dialog dialog = new Dialog(a);
-		dialog.setContentView(R.layout.fileserver);
+	private ArrayList<Inet4Address> addresses;
+	private void UpdateAddresses()
+	{
+		if(addresses == null)
+			return;
+		String text = "";
+		for(Inet4Address addr : addresses)
+		{
+			text += addr.getHostAddress() + '\n';
+		}
+		ipInfo.setText(text);
+	}
+	
+	private int runPing(String args, byte[] outaddr)
+	{
+		try{
+			byte[] data = new byte[255];
+			java.lang.Process p = Runtime.getRuntime().exec(new String[]{"/system/bin/sh","-c","ping "+args+" 2>&1"});
+			Log.d("ping", args);
+			InputStream out = p.getInputStream();
+			out.read(data);
+			String output = new String(data);
+			int i = output.indexOf( "\nFrom " );
+			if( i >= 0 )
+			{
+				String addr = output.substring( i + 6 );
+				int i1 = addr.indexOf( ':' );
+				i = addr.indexOf( ' ' );
+				if( i1 > 0 && i1 < i )
+					i = i1;
+				String[] spl = addr.substring( 0, i ).split("\\.");
+				//Log.d("ping", "err " + spl + "" + addr);
+				outaddr[0] = (byte)(int)Integer.valueOf(spl[0]);
+				outaddr[1] = (byte)(int)Integer.valueOf(spl[1]);
+				outaddr[2] = (byte)(int)Integer.valueOf(spl[2]);
+				outaddr[3] = (byte)(int)Integer.valueOf(spl[3]);
+				
+				i = 1; // unknown
+				if( addr.indexOf("exceeded") > 0 ) // TTL
+					i = 2;
+				else if( addr.indexOf("Unreachable") > 0 ) // Destination Host Unreachable
+					i = 3;
+				Log.d("ping", "err:"+i);
+				return i;
+			}
+			else {
+				i = output.indexOf( "\n64 bytes from " );
+				String addr = output.substring( i + 15 );
+				addr = addr.substring( 0, addr.indexOf(':') );
+				String[] spl = addr.split("\\.");
+				Log.d("ping", "ok " + spl + "" + addr);
+				outaddr[0] = (byte)(int)Integer.valueOf(spl[0]);
+				outaddr[1] = (byte)(int)Integer.valueOf(spl[1]);
+				outaddr[2] = (byte)(int)Integer.valueOf(spl[2]);
+				outaddr[3] = (byte)(int)Integer.valueOf(spl[3]);
+				
+				return 0; // OK
+			}
+			//Log.e("ping", output);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return -1;
+		}
+	}
+	private void addAddrCallback(byte[] addr)
+	{
+		try {
+			Inet4Address a = (Inet4Address)InetAddress.getByAddress(addr);
+			if(addresses.contains(a))
+				return;
+			addresses.add(a);
+		}
+		catch(UnknownHostException e){} // why the fuck Inet4Address does not have constructor only allowing to construct it with impossible exceptions???
+		runOnUiThread(new Runnable(){
+			@Override
+					public void run()
+			{
+				UpdateAddresses();
+			}
+		});
+	}
+
+	// ping-based discovery, in case android does not give addresses for some paranoid-schizosecurity reason
+	private Runnable pingWorker = new Runnable() {
+		@Override
+		public void run()
+		{
+			byte[] addr = new byte[4];
+
+			// first, check some default android addresses if we are using tethering
+			// wifi tethering
+			if( runPing( "-c 1 -w 1 -t 1 192.168.43.1", addr ) == 0 )
+			{
+				addAddrCallback(addr);
+			}
+			// usb tethering
+			if( runPing( "-c 1 -w 1 -t 1 192.168.42.129", addr ) == 0 )
+			{
+				addAddrCallback(addr);
+			}
+			try{
+			Thread.sleep(500);
+			}catch(Exception e){}
+			// p2p
+			if( runPing( "-c 1 -w 1 -t 1 192.168.49.254", addr ) == 3 && runPing( "-c 1 -w 1 -t 1 192.168.49.1", addr ) == 0 )
+			{
+				addAddrCallback(addr);
+			}
+			try{
+				Thread.sleep(1000);
+			}catch(Exception e){}
+			// try get gateway (should get TTL error with GW address);
+			if( runPing( "-c 1 -w 1 -t 1 255.255.255.254", addr ) == 2 )
+			{
+				byte[] o2 = new byte[4];
+				Log.d( "ping", "" + ((int)addr[0] & 0xFF) + "." + ((int)addr[1] & 0xFF) +"." + ((int)addr[2] & 0xFF) + "." + ((int)addr[3] & 0xFF ));
+				for(int b = 1; b < 10; b++ )
+				{
+					int r = runPing( "-c 1 -w 3 -t 1 " + ((int)addr[0] & 0xFF) + "." + ((int)addr[1] & 0xFF) +"." + ((int)addr[2] & 0xFF) + "." + b, o2);
+					if( r != 3 )
+						r = runPing( "-c 1 -w 3 -t 1 " + ((int)addr[0] & 0xFF) + "." + ((int)addr[1] & 0xFF) +"." + ((int)addr[2] & 0xFF) + "." + (255 - b), o2);
+					if( r != 3 )
+						r = runPing( "-c 1 -w 3 -t 1 " + ((int)addr[0] & 0xFF) + "." + ((int)addr[1] & 0xFF) +"." + ((int)addr[2] & 0xFF) + "." +((int)addr[3] & 0xFF+b), o2);
+					// get first unreachable source address (need more time sometimes)
+					if( r == 3 )
+					{
+						// should successfully ping it now
+						if( runPing( "-c 1 -w 1 -t 1 " + ((int)o2[0] & 0xFF) + "." + ((int)o2[1] & 0xFF) +"." + ((int)o2[2] & 0xFF) + "." + ((int)o2[3] & 0xFF), o2) == 0 )
+						{
+							addAddrCallback(o2);
+						}
+						break;
+					}
+				}
+			}
+		}
+	};
+	private void showFileServer(View view)
+	{
+		fileServerDialog = new Dialog(this);
+		fileServerDialog.setContentView(R.layout.fileserver);
 		//dialog.setCancelable(false);
-		dialog.show();
+		fileServerDialog.show();
+		fileServerToggle = (ToggleButton) fileServerDialog.findViewById( R.id.toggle_file_server );
+		fileServerToggle.setOnCheckedChangeListener( checkListener );
+		ipInfo = (TextView) fileServerDialog.findViewById( R.id.fileserver_info );
+		addresses = new ArrayList<Inet4Address>();
+		try {
+			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				String name = intf.getName();
+				// ignore dummy and mobile interfaces, we do not need public or nat addresses
+				if( name.indexOf("dummy") >= 0 || name.indexOf("rmnet") >= 0 || name.indexOf("ccmni") >= 0 || name.indexOf("pdp") >= 0 )
+					continue;
+				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+					if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+						addresses.add((Inet4Address)inetAddress);
+					}
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		UpdateAddresses();
+		new Thread(pingWorker).start();
 	}
 
 	public void aboutXash(View view)
 	{
-		final Activity a = this;
-
-		final Dialog dialog = new Dialog(a);
+		final Dialog dialog = new Dialog(this);
 		dialog.setContentView(R.layout.about);
 		dialog.setCancelable(true);
 		dialog.show();
@@ -491,7 +660,7 @@ public class LauncherActivity extends Activity
 				@Override
 				public void onClick(View v) {
 					dialog.cancel();
-					Intent intent = new Intent(a, XashTutorialActivity.class);
+					Intent intent = new Intent(LauncherActivity.this, XashTutorialActivity.class);
 					startActivity(intent);
 				}
 			});

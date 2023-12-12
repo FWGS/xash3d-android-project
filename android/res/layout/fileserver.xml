@@ -1,0 +1,57 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:focusable="true"
+			android:focusableInTouchMode="true"
+			android:descendantFocusability="beforeDescendants">
+	
+	<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:id="@+id/main_layout"
+				android:weightSum="1"
+				android:focusable="true"
+				android:focusableInTouchMode="true"
+				android:descendantFocusability="beforeDescendants">
+
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Server port"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:focusable="true"
+				android:focusableInTouchMode="true"/>
+		<EditText
+				android:id="@+id/fileserver_port"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dp"
+				android:layout_marginTop="3dp"
+				android:numeric="decimal"
+				android:text="8080" />
+		<ToggleButton
+				android:id="@+id/toggle_file_server"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dp"
+				android:layout_marginTop="5dp"
+				android:textOff="Start server"
+				android:textOn="Stop server" />
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:text="Use web browser on you PC to download and manage files to game folder.\nConnect to same network, press &quot;Start server&quot; and open local device IP addres in browser. WebDAV clients (http folders) should work too.\nFollowing local IP addresses found:"
+				android:layout_gravity="left" />
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?android:attr/textAppearanceLarge"
+				android:id="@+id/fileserver_info"
+				android:layout_gravity="left" />
+		  
+		
+			
+		</LinearLayout>
+	</ScrollView>
