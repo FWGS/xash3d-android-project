@@ -47,13 +47,17 @@ public class LauncherActivity extends Activity
 		{
 			switch(v.getId())
 			{
+				case R.id.button_share_fileserver:
+					shareFileServer();
+				break;
 				case R.id.button_fileserver:
 				case R.id.button_manage_files:
-					showFileServer(v);
+				case R.id.button_fileserver_rwdir:
+					showFileServer(v.getId() == R.id.button_fileserver_rwdir);
 				break;
 				case R.id.cmd_path_rw_select:
 					selectRwFolder(v);
-					break;
+				break;
 				case R.id.button_select:
 				case R.id.cmd_path_select:
 					selectFolder(v);
@@ -191,6 +195,7 @@ public class LauncherActivity extends Activity
 		(( Button ) findViewById( R.id.cmd_path_rw_select )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_manage_files )).setOnClickListener(buttonListener);
 		(( Button ) findViewById( R.id.button_fileserver )).setOnClickListener(buttonListener);
+		(( Button ) findViewById( R.id.button_fileserver_rwdir )).setOnClickListener(buttonListener);
 		useVolume.setChecked(mPref.getBoolean("usevolume",true));
 		checkUpdates.setChecked(mPref.getBoolean("check_updates",true));
 		//updateToBeta.setChecked(mPref.getBoolean("check_betas", false));
@@ -279,7 +284,7 @@ public class LauncherActivity extends Activity
 		toggleResolutionFields();
 		FWGSLib.cmp.applyPermissions( this, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, REQUEST_PERMISSIONS );
 		if( getIntent().getBooleanExtra( "startServer", false ))
-			showFileServer( null );
+			showFileServer( false );
 		else if( !mPref.getBoolean("successfulRun",false) )
 			showFirstRun();
 	}
@@ -463,9 +468,17 @@ public class LauncherActivity extends Activity
 	private Dialog fileServerDialog;
 	private TextView ipInfo;
 	private ToggleButton fileServerToggle;
+	private int serverPort;
 	private void toggleFileServer(View v, boolean checked)
 	{
 		fileServerDialog.setCancelable(!checked);
+		if( checked )
+		{
+			serverPort = Integer.valueOf(((EditText) fileServerDialog.findViewById( R.id.fileserver_port )).getText().toString());
+			mPref.edit().putInt( "fileServerPort", serverPort ).commit();
+		}
+		fileServerDialog.findViewById( R.id.button_share_fileserver ).setEnabled( checked );
+		UpdateAddresses();
 	} 
 
 	private ArrayList<Inet4Address> addresses;
@@ -476,9 +489,22 @@ public class LauncherActivity extends Activity
 		String text = "";
 		for(Inet4Address addr : addresses)
 		{
-			text += addr.getHostAddress() + '\n';
+			if( !fileServerToggle.isChecked() )
+				text += addr.getHostAddress() + '\n';
+			else
+				text += "http://" + addr.getHostAddress() +':'+ serverPort + "/\n";
 		}
 		ipInfo.setText(text);
+	}
+	private void shareFileServer()
+	{
+		String text = "";
+		for(Inet4Address addr : addresses)
+			text += "http://" + addr.getHostAddress() +':'+ serverPort + "/\n";
+		Intent shareIntent = new Intent(Intent.ACTION_SEND);
+		shareIntent.setType("text/plain");
+		shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+		startActivity(Intent.createChooser(shareIntent, "Send this somewhere you can read from PC"));
 	}
 	
 	private int runPing(String args, byte[] outaddr)
@@ -607,7 +633,7 @@ public class LauncherActivity extends Activity
 			}
 		}
 	};
-	private void showFileServer(View view)
+	private void showFileServer( boolean rwdir )
 	{
 		fileServerDialog = new Dialog(this);
 		fileServerDialog.setContentView(R.layout.fileserver);
@@ -615,7 +641,11 @@ public class LauncherActivity extends Activity
 		fileServerDialog.show();
 		fileServerToggle = (ToggleButton) fileServerDialog.findViewById( R.id.toggle_file_server );
 		fileServerToggle.setOnCheckedChangeListener( checkListener );
+		View share = fileServerDialog.findViewById( R.id.button_share_fileserver );
+		share.setOnClickListener( buttonListener );
+		share.setEnabled( false );
 		ipInfo = (TextView) fileServerDialog.findViewById( R.id.fileserver_info );
+		((EditText) fileServerDialog.findViewById( R.id.fileserver_port )).setText(String.valueOf(mPref.getInt("fileServerPort", 8080)));
 		addresses = new ArrayList<Inet4Address>();
 		try {
 			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
@@ -711,7 +741,7 @@ public class LauncherActivity extends Activity
 					updatePath(resultData.getStringExtra("GetPath"));
 					resPath.setEnabled( true );
 					if( resultData.getBooleanExtra("startServer", false ))
-						showFileServer( null );
+						showFileServer( false );
 				}
 				catch(Exception e)
 				{
