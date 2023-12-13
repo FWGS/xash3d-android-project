@@ -207,6 +207,13 @@ public class LauncherActivity extends Activity
 		writePath.setText(mPref.getString("writedir", FWGSLib.getExternalFilesDir(this)));
 
 		debugger.setChecked( mPref.getBoolean( "launch_gdb", false ));
+		try {
+			Class.forName( "su.xash.engine.DebugService" );
+			debugger.setChecked( mPref.getBoolean( "launch_gdb", false ));
+		} catch( ClassNotFoundException e ) {
+			debugger.setChecked( false );
+			debugger.setEnabled( false );
+		}
 		debuggerWait.setChecked( mPref.getBoolean( "gdb_wait", true ));
 		debuggerCommand.setText( mPref.getString( "gdb_command", "" ));
 		resolution.setChecked( mPref.getBoolean("resolution_fixed", false ) );
