@@ -213,6 +213,12 @@
 									android:text="..."
 									android:onClick="selectFolder" />
 							</LinearLayout>
+							<Button
+								   android:id="@+id/button_fileserver"
+								   android:layout_width="match_parent"
+								   android:layout_height="wrap_content"
+								   android:layout_margin="10dp"
+								android:text="File server (basedir)" />
 							<ToggleButton
 								android:id="@+id/use_rodir"
 								android:layout_width="match_parent"
@@ -268,14 +274,8 @@
 									android:layout_width="match_parent"
 									android:layout_height="wrap_content"
 									android:layout_margin="10dp"
-									android:text="Manage rwdir" />
+									android:text="File server (rwdir)" />
 							</LinearLayout>
-							<Button
-								android:id="@+id/button_fileserver"
-								android:layout_width="match_parent"
-								android:layout_height="wrap_content"
-								android:layout_margin="10dp"
-								android:text="File server" />
 							<ToggleButton
 								android:id="@+id/enableResizeWorkaround"
 								android:layout_width="match_parent"

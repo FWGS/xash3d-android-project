@@ -45,7 +45,8 @@ public class LauncherActivity extends Activity
 		@Override
 		public void onClick(View v) 
 		{
-			switch(v.getId())
+			int id = v.getId();
+			switch( id )
 			{
 				case R.id.button_share_fileserver:
 					shareFileServer();
@@ -53,7 +54,7 @@ public class LauncherActivity extends Activity
 				case R.id.button_fileserver:
 				case R.id.button_manage_files:
 				case R.id.button_fileserver_rwdir:
-					showFileServer(v.getId() == R.id.button_fileserver_rwdir);
+					showFileServer( id == R.id.button_fileserver_rwdir );
 				break;
 				case R.id.cmd_path_rw_select:
 					selectRwFolder(v);
@@ -476,15 +477,39 @@ public class LauncherActivity extends Activity
 	private TextView ipInfo;
 	private ToggleButton fileServerToggle;
 	private int serverPort;
+	private String serverPath;
+	private java.lang.Process serverProcess;
 	private void toggleFileServer(View v, boolean checked)
 	{
 		fileServerDialog.setCancelable(!checked);
+		fileServerDialog.findViewById( R.id.button_share_fileserver ).setEnabled( checked );
 		if( checked )
 		{
 			serverPort = Integer.valueOf(((EditText) fileServerDialog.findViewById( R.id.fileserver_port )).getText().toString());
 			mPref.edit().putInt( "fileServerPort", serverPort ).commit();
+			try
+			{
+				String execFallback = FWGSLib.execFallback( this, FWGSLib.cmp.getNativeLibDir( this ) + "/libfileserver.so" );
+				serverProcess = Runtime.getRuntime().exec(new String[]{execFallback, serverPath, String.valueOf( serverPort )});
+			}
+			catch( Exception e )
+			{
+				e.printStackTrace();
+			}
 		}
-		fileServerDialog.findViewById( R.id.button_share_fileserver ).setEnabled( checked );
+		else
+		{
+			try
+			{
+				if( serverProcess != null )
+					serverProcess.destroy();
+				serverProcess = null;
+			}
+			catch( Exception e )
+			{
+				e.printStackTrace();
+			}
+		}
 		UpdateAddresses();
 	} 
 
@@ -648,11 +673,14 @@ public class LauncherActivity extends Activity
 		fileServerDialog.show();
 		fileServerToggle = (ToggleButton) fileServerDialog.findViewById( R.id.toggle_file_server );
 		fileServerToggle.setOnCheckedChangeListener( checkListener );
+		FWGSLib.changeButtonsStyle((ViewGroup)fileServerToggle.getParent());
 		View share = fileServerDialog.findViewById( R.id.button_share_fileserver );
 		share.setOnClickListener( buttonListener );
 		share.setEnabled( false );
 		ipInfo = (TextView) fileServerDialog.findViewById( R.id.fileserver_info );
 		((EditText) fileServerDialog.findViewById( R.id.fileserver_port )).setText(String.valueOf(mPref.getInt("fileServerPort", 8080)));
+		serverPath = rwdir ? writePath.getText().toString() : resPath.getText().toString();
+		Log.d( "serverPath", serverPath + " " + rwdir );
 		addresses = new ArrayList<Inet4Address>();
 		try {
 			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
