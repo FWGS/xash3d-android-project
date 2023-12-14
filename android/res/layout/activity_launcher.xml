@@ -126,18 +126,19 @@
 								android:onClick="selectFolder"
 								android:text="@string/select_folder" />
 							<Button
+								android:id="@+id/button_manage_files"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:text="Manage files" />
+							<Button
 								android:id="@+id/button_shortcut"
 								android:layout_width="match_parent"
 								android:layout_height="wrap_content"
 								android:layout_margin="10dp"
 								android:onClick="createShortcut"
 								android:text="@string/create_shortcut_button" />
-							<Button
-							       android:id="@+id/button_manage_files"
-							       android:layout_width="match_parent"
-							       android:layout_height="wrap_content"
-							       android:layout_margin="10dp"
-								android:text="Manage files" />
+
 						</LinearLayout>
 					</LinearLayout>
 					<LinearLayout
