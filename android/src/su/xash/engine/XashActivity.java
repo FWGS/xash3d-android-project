@@ -833,6 +833,11 @@ public class XashActivity extends Activity {
 			GenericUpdatePage();
 		}
 	}
+
+	@Override
+	public void onBackPressed(){
+		mSurface.requestFocus();
+	}
 	
 }
 
