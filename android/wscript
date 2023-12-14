@@ -103,6 +103,10 @@ def build(bld):
 		gdb_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libgdb.so')
 		libs.append(gdb_node)
 		jnifiles[gdb_node] = bld.env.PREFIX + '/libgdb.so'
+	if False:
+		gdb_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libstrace.so')
+		libs.append(gdb_node)
+		jnifiles[gdb_node] = bld.env.PREFIX + '/libstrace.so'
 	@TaskGen.feature('zip')
 	@TaskGen.after_method('create_zip_archive')
 	def copy_zip(self):

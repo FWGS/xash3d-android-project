@@ -344,7 +344,7 @@ public class LauncherActivity extends Activity
 	{
 		if( saved.length() == 0 )
 		{
-			return "logcat&HOME=\""+getFilesDir().getPath()+"\" LD_LIBRARY_PATH=\""+FWGSLib.cmp.getNativeLibDir(this)+":$LD_LIBRARY_PATH\" FAKE_TTY=1 TERM=linux {GDB} {APP_PROCESS} -p {PID} 2>&1";
+			return "logcat&HOME=\""+getFilesDir().getPath()+"\" LD_LIBRARY_PATH=\"{LIBDIR}:$LD_LIBRARY_PATH\" FAKE_TTY=1 TERM=linux {GDB} {APP_PROCESS} -p {PID} 2>&1";
 		}
 		return saved;
 	}
@@ -490,7 +490,11 @@ public class LauncherActivity extends Activity
 			try
 			{
 				String execFallback = FWGSLib.execFallback( this, FWGSLib.cmp.getNativeLibDir( this ) + "/libfileserver.so" );
-				serverProcess = Runtime.getRuntime().exec(new String[]{execFallback, serverPath, String.valueOf( serverPort )});
+				//String command = "" + execFallback;// + " " + serverPath + " " + String.valueOf( serverPort );
+				Log.d( "fileServerExec",  execFallback + " " + serverPath + " " + String.valueOf( serverPort ));
+				serverProcess = Runtime.getRuntime().exec(new String[] { execFallback, serverPath, String.valueOf( serverPort ) });
+				//command);//new String[]{ "/system/bin/sh", "-c" , command });
+				//Log.d( "fileServerExec", String.valueOf( serverProcess.waitFor() ));
 			}
 			catch( Exception e )
 			{
