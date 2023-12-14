@@ -48,8 +48,17 @@ public class AndroidBug5497Workaround
 			} 
 			else 
 			{
+				// Log.d("AndroidBug5497Workaround", "usableHeightNow: " + usableHeightNow + ", usableHeightSansKeyboard: " + usableHeightSansKeyboard );
+
+				 // android 12 includes full screen size with navbar instead of visible area, so use smaller one
+				if( usableHeightSansKeyboard > usableHeightNow )
+					usableHeightSansKeyboard = usableHeightNow;
+
 				// keyboard probably just became hidden
 				frameLayoutParams.height = usableHeightSansKeyboard;
+
+				// this should work fix wrong height on recent android to, but unsure what will work better
+				// frameLayoutParams.height = FrameLayout.LayoutParams.FILL_PARENT;
 			}
 
 			
