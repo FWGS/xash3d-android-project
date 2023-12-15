@@ -303,6 +303,13 @@
 								android:layout_height="wrap_content"
 								android:layout_margin="10dp"
 								android:text="@string/immersive_mode" />
+
+							<CheckBox
+								android:id="@+id/pointer_capture"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:layout_margin="10dp"
+								android:text="Enable pointer capture" />
 							<CheckBox
 								android:id="@+id/resolution"
 								android:layout_width="match_parent"

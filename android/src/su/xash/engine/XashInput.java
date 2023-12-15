@@ -42,232 +42,284 @@ public class XashInput
 		return handler;
 	}
 
-
-public static class JoystickHandler
-{
-	public int getSource( KeyEvent event )
-	{
-		return InputDevice.SOURCE_UNKNOWN;
-	}
 	
-	public int getSource( MotionEvent event )
+	public static class JoystickHandler
 	{
-		return InputDevice.SOURCE_UNKNOWN;
-	}
-	
-	public boolean handleAxis( MotionEvent event )
-	{
-		return false;
-	}
-	
-	public boolean isGamepadButton( int keyCode )
-	{
-		return false;
-	}
-	
-	public String keyCodeToString( int keyCode )
-	{
-		return String.valueOf( keyCode );
-	}
-	
-	public void init()
-	{
-	}
-	
-	public boolean hasVibrator()
-	{
-		return true;
-	}
-	
-	public void showMouse( boolean show )
-	{
-	}
-	
-	public int getButtonState( MotionEvent event )
-	{
-		return 0;
-	}
-}
-
-
-static class JoystickHandler_v12 extends JoystickHandler
-{
-	private static float prevSide, prevFwd, prevYaw, prevPtch, prevLT, prevRT, prevHX, prevHY;
-
-	public static boolean mNVMouseExtensions = false;
-
-	static int mouseId;
-	static 
-	{
-		try 
+		public int getSource( KeyEvent event )
 		{
-			Wrap_NVMouseExtensions.checkAvailable();
-			mNVMouseExtensions = true;
+			return InputDevice.SOURCE_UNKNOWN;
 		}
-		catch( Throwable t ) 
+		
+		public int getSource( MotionEvent event )
 		{
-			mNVMouseExtensions = false; 
+			return InputDevice.SOURCE_UNKNOWN;
 		}
-	}
-
-	@Override
-	public void init()
-	{
-		XashActivity.mSurface.setOnGenericMotionListener( new MotionListener() );
-		Log.d( XashActivity.TAG, "mNVMouseExtensions = " + mNVMouseExtensions );
-	}
-
-	@Override
-	public int getSource( KeyEvent event )
-	{
-		return event.getSource();
-	}
-
-	@Override
-	public int getSource( MotionEvent event )
-	{
-		if( event.getDeviceId() == mouseId )
-			return InputDevice.SOURCE_MOUSE;
-		return event.getSource();
-	}
-
-	@Override
-	public boolean handleAxis( MotionEvent event )
-	{
-		// how event can be from null device, Android?
-		final InputDevice device = event.getDevice();
-		if( device == null )
+		
+		public boolean handleAxis( MotionEvent event )
+		{
 			return false;
-
-		// maybe I need to cache this...
-		for( InputDevice.MotionRange range: device.getMotionRanges() )
+		}
+		
+		public boolean isGamepadButton( int keyCode )
 		{
-			// normalize in -1.0..1.0 (copied from SDL2)
-			final float cur = ( event.getAxisValue( range.getAxis(), event.getActionIndex() ) - range.getMin() ) / range.getRange() * 2.0f - 1.0f;
-			final float dead = range.getFlat(); // get axis dead zone
-			switch( range.getAxis() )
+			return false;
+		}
+		
+		public String keyCodeToString( int keyCode )
+		{
+			return String.valueOf( keyCode );
+		}
+		
+		public void init()
+		{
+		}
+		
+		public boolean hasVibrator()
+		{
+			return true;
+		}
+		
+		public void showMouse( boolean show, View v )
+		{
+		}
+
+		public void handleCapturedEvent( MotionEvent event )
+		{
+		}
+		
+		public int getButtonState( MotionEvent event )
+		{
+			return 0;
+		}
+	}
+	
+	
+	static class JoystickHandler_v12 extends JoystickHandler
+	{
+		private static float prevSide, prevFwd, prevYaw, prevPtch, prevLT, prevRT, prevHX, prevHY;
+	
+		public static boolean mNVMouseExtensions = false;
+	
+		static int mouseId;
+		static 
+		{
+			try 
 			{
-			// typical axes
-			// move
-			case MotionEvent.AXIS_X:
-				prevSide = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_SIDE,  prevSide, dead );
-				break;
-			case MotionEvent.AXIS_Y:
-				prevFwd  = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_FWD,   prevFwd,  dead );
-				break;
-
-			// rotate. Invert, so by default this works as it's should
-			case MotionEvent.AXIS_Z:
-				prevPtch = XashActivity.performEngineAxisEvent( -cur, XashActivity.JOY_AXIS_PITCH, prevPtch, dead );
-				break;
-			case MotionEvent.AXIS_RZ:
-				prevYaw  = XashActivity.performEngineAxisEvent( -cur, XashActivity.JOY_AXIS_YAW,   prevYaw,  dead );
-				break;
-
-			// trigger
-			case MotionEvent.AXIS_RTRIGGER:
-				prevLT = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_RT, prevLT,   dead );
-				break;
-			case MotionEvent.AXIS_LTRIGGER:
-				prevRT = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_LT, prevRT,   dead );
-				break;
-
-			// hats
-			case MotionEvent.AXIS_HAT_X:
-				prevHX = XashActivity.performEngineHatEvent( cur, true, prevHX );
-				break;
-			case MotionEvent.AXIS_HAT_Y:
-				prevHY = XashActivity.performEngineHatEvent( cur, false, prevHY );
-				break;
+				Wrap_NVMouseExtensions.checkAvailable();
+				mNVMouseExtensions = true;
+			}
+			catch( Throwable t ) 
+			{
+				mNVMouseExtensions = false; 
 			}
 		}
-		return true;
-	}
-
-	@Override
-	public boolean isGamepadButton( int keyCode )
-	{
-		return KeyEvent.isGamepadButton( keyCode );
-	}
-
-	@Override
-	public String keyCodeToString( int keyCode )
-	{
-		return KeyEvent.keyCodeToString( keyCode );
-	}
-
-	class MotionListener implements View.OnGenericMotionListener
-	{
+	
 		@Override
-		public boolean onGenericMotion( View view, MotionEvent event )
+		public void init()
 		{
-			final int source = XashActivity.handler.getSource( event );
-			
-			if( FWGSLib.FExactBitSet( source, InputDevice.SOURCE_GAMEPAD ) || 
-				FWGSLib.FExactBitSet( source, InputDevice.SOURCE_CLASS_JOYSTICK ) )
-				return XashActivity.handler.handleAxis( event );
+			XashActivity.mSurface.setOnGenericMotionListener( new MotionListener() );
+			Log.d( XashActivity.TAG, "mNVMouseExtensions = " + mNVMouseExtensions );
+		}
+	
+		@Override
+		public int getSource( KeyEvent event )
+		{
+			return event.getSource();
+		}
+	
+		@Override
+		public int getSource( MotionEvent event )
+		{
+			if( event.getDeviceId() == mouseId )
+				return InputDevice.SOURCE_MOUSE;
+			return event.getSource();
+		}
 
+		int prevButtonState;
+		public void handleCapturedEvent( MotionEvent event )
+		{
+			// if capture really works, disable relative coordinate processing and restore cursor
 			if( mNVMouseExtensions )
 			{
-				float x = event.getAxisValue( Wrap_NVMouseExtensions.getAxisRelativeX(), 0 );
-				float y = event.getAxisValue( Wrap_NVMouseExtensions.getAxisRelativeY(), 0 );
-				if( !FWGSLib.FExactBitSet( source, InputDevice.SOURCE_MOUSE) && (x != 0 || y != 0 ))
-					mouseId = event.getDeviceId();
-				
-				switch( event.getAction() ) 
-				{
-					case MotionEvent.ACTION_SCROLL:
+				Wrap_NVMouseExtensions.setCursorVisibility( true );
+				mNVMouseExtensions = false;
+			}
+			float x = event.getX();
+			float y = event.getY();
+			int action = event.getAction();
+			//if( !FWGSLib.FExactBitSet( source, InputDevice.SOURCE_MOUSE) && (x != 0 || y != 0 ))
+				//mouseId = event.getDeviceId();
+			
+			switch( action ) 
+			{
+				case MotionEvent.ACTION_SCROLL:
 					if( event.getAxisValue( MotionEvent.AXIS_VSCROLL ) < 0.0f )
 					{
 						XashBinding.nativeKey( 1, -239 );
 						XashBinding.nativeKey( 0, -239 );
-						return true;
+						return;// true;
 					}
 					else
 					{
 						XashBinding.nativeKey( 1, -240 );
 						XashBinding.nativeKey( 0, -240 );
 					}
+					return;
+			}
+			
+			int state = XashActivity.handler.getButtonState( event );
+			int statediff = state ^ prevButtonState;
+			prevButtonState = state;
+			if( ( statediff & MotionEvent.BUTTON_PRIMARY ) != 0 )
+				XashBinding.nativeKey( ( state & MotionEvent.BUTTON_PRIMARY ) != 0 ? 1 : 0, -241 );
+			if( ( statediff & MotionEvent.BUTTON_SECONDARY ) != 0 )
+				XashBinding.nativeKey( ( state & MotionEvent.BUTTON_SECONDARY ) != 0 ? 1 : 0, -242 );
+			if( ( statediff & MotionEvent.BUTTON_TERTIARY ) != 0 )
+				XashBinding.nativeKey( ( state & MotionEvent.BUTTON_TERTIARY ) != 0 ? 1 : 0, -243 );
+			
+			XashBinding.nativeMouseMove( x, y );
+			
+		}
+	
+		@Override
+		public boolean handleAxis( MotionEvent event )
+		{
+			// how event can be from null device, Android?
+			final InputDevice device = event.getDevice();
+			if( device == null )
+				return false;
+	
+			// maybe I need to cache this...
+			for( InputDevice.MotionRange range: device.getMotionRanges() )
+			{
+				// normalize in -1.0..1.0 (copied from SDL2)
+				final float cur = ( event.getAxisValue( range.getAxis(), event.getActionIndex() ) - range.getMin() ) / range.getRange() * 2.0f - 1.0f;
+				final float dead = range.getFlat(); // get axis dead zone
+				switch( range.getAxis() )
+				{
+				// typical axes
+				// move
+				case MotionEvent.AXIS_X:
+					prevSide = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_SIDE,  prevSide, dead );
+					break;
+				case MotionEvent.AXIS_Y:
+					prevFwd  = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_FWD,   prevFwd,  dead );
+					break;
+	
+				// rotate. Invert, so by default this works as it's should
+				case MotionEvent.AXIS_Z:
+					prevPtch = XashActivity.performEngineAxisEvent( -cur, XashActivity.JOY_AXIS_PITCH, prevPtch, dead );
+					break;
+				case MotionEvent.AXIS_RZ:
+					prevYaw  = XashActivity.performEngineAxisEvent( -cur, XashActivity.JOY_AXIS_YAW,   prevYaw,  dead );
+					break;
+	
+				// trigger
+				case MotionEvent.AXIS_RTRIGGER:
+					prevLT = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_RT, prevLT,   dead );
+					break;
+				case MotionEvent.AXIS_LTRIGGER:
+					prevRT = XashActivity.performEngineAxisEvent( cur, XashActivity.JOY_AXIS_LT, prevRT,   dead );
+					break;
+	
+				// hats
+				case MotionEvent.AXIS_HAT_X:
+					prevHX = XashActivity.performEngineHatEvent( cur, true, prevHX );
+					break;
+				case MotionEvent.AXIS_HAT_Y:
+					prevHY = XashActivity.performEngineHatEvent( cur, false, prevHY );
+					break;
+				}
+			}
+			return true;
+		}
+	
+		@Override
+		public boolean isGamepadButton( int keyCode )
+		{
+			return KeyEvent.isGamepadButton( keyCode );
+		}
+	
+		@Override
+		public String keyCodeToString( int keyCode )
+		{
+			return KeyEvent.keyCodeToString( keyCode );
+		}
+	
+		class MotionListener implements View.OnGenericMotionListener
+		{
+			@Override
+			public boolean onGenericMotion( View view, MotionEvent event )
+			{
+				final int source = XashActivity.handler.getSource( event );
+				
+				if( FWGSLib.FExactBitSet( source, InputDevice.SOURCE_GAMEPAD ) || 
+					FWGSLib.FExactBitSet( source, InputDevice.SOURCE_CLASS_JOYSTICK ) )
+					return XashActivity.handler.handleAxis( event );
+	
+				if( mNVMouseExtensions )
+				{
+					float x = event.getAxisValue( Wrap_NVMouseExtensions.getAxisRelativeX(), 0 );
+					float y = event.getAxisValue( Wrap_NVMouseExtensions.getAxisRelativeY(), 0 );
+					if( !FWGSLib.FExactBitSet( source, InputDevice.SOURCE_MOUSE) && (x != 0 || y != 0 ))
+						mouseId = event.getDeviceId();
+					
+					switch( event.getAction() ) 
+					{
+						case MotionEvent.ACTION_SCROLL:
+						if( event.getAxisValue( MotionEvent.AXIS_VSCROLL ) < 0.0f )
+						{
+							XashBinding.nativeKey( 1, -239 );
+							XashBinding.nativeKey( 0, -239 );
+							return true;
+						}
+						else
+						{
+							XashBinding.nativeKey( 1, -240 );
+							XashBinding.nativeKey( 0, -240 );
+						}
+						return true;
+					}
+					
+					XashBinding.nativeMouseMove( x, y );
+					// Log.v("XashInput", "MouseMove: " +x + " " + y );
 					return true;
 				}
-				
-				XashBinding.nativeMouseMove( x, y );
-				// Log.v("XashInput", "MouseMove: " +x + " " + y );
-				return true;
+	
+				// TODO: Add it someday
+				// else if( (event.getSource() & InputDevice.SOURCE_CLASS_TRACKBALL) == InputDevice.SOURCE_CLASS_TRACKBALL )
+				//	return XashActivity.handleBall( event );
+				//return super.onGenericMotion( view, event );
+				return false;
 			}
-
-			// TODO: Add it someday
-			// else if( (event.getSource() & InputDevice.SOURCE_CLASS_TRACKBALL) == InputDevice.SOURCE_CLASS_TRACKBALL )
-			//	return XashActivity.handleBall( event );
-			//return super.onGenericMotion( view, event );
+		}
+		
+		@Override
+		public boolean hasVibrator()
+		{
+			if( XashActivity.mVibrator != null )
+				return XashActivity.mVibrator.hasVibrator();
 			return false;
+		}
+		
+		@Override
+		public void showMouse( boolean show, View v )
+		{
+			if( mNVMouseExtensions )
+				Wrap_NVMouseExtensions.setCursorVisibility( show );
+			if( v != null )
+				FWGSLib.cmp.requestPointerCapture( v, !show );
 		}
 	}
 	
-	@Override
-	public boolean hasVibrator()
+	static class JoystickHandler_v14 extends JoystickHandler_v12
 	{
-		if( XashActivity.mVibrator != null )
-			return XashActivity.mVibrator.hasVibrator();
-		return false;
+		@Override
+		public int getButtonState( MotionEvent event )
+		{
+			return event.getButtonState();
+		}
 	}
-	
-	@Override
-	public void showMouse( boolean show )
-	{
-		if( mNVMouseExtensions )
-			Wrap_NVMouseExtensions.setCursorVisibility( show );
-	}
-}
-
-static class JoystickHandler_v14 extends JoystickHandler_v12
-{
-	@Override
-	public int getButtonState( MotionEvent event )
-	{
-		return event.getButtonState();
-	}
-}
 
 	public static View.OnTouchListener getTouchListener()
 	{
@@ -459,14 +511,14 @@ class EngineTouchListener_v5 implements View.OnTouchListener
 					int buttonState = XashActivity.handler.getButtonState( event );
 					if( down && ( buttonState & MotionEvent.BUTTON_SECONDARY ) != 0 )
 					{
-						XashBinding.nativeKey( 1, -243 );
+						XashBinding.nativeKey( 1, -242 );
 						secondarypressed = true;
 						return true;
 					}
 					else if( !down && secondarypressed && ( buttonState & MotionEvent.BUTTON_SECONDARY ) == 0 )
 					{
 						secondarypressed = false;
-						XashBinding.nativeKey( 0, -243 );
+						XashBinding.nativeKey( 0, -242 );
 						return true;
 					}
 					XashBinding.nativeKey( down ? 1 : 0, -241 );

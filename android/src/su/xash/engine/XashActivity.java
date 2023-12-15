@@ -52,6 +52,7 @@ public class XashActivity extends Activity {
 	private static String mWriteDir;
 	
 	public static EngineSurface mSurface;
+	public static View mCaptureSurface;
 	public static String mArgv[];
 	public static final int sdk = Integer.valueOf( Build.VERSION.SDK );
 	public static final String TAG = "XASH3D:XashActivity";
@@ -452,6 +453,8 @@ public class XashActivity extends Activity {
 		mLayout = new FrameLayout( this );
 		mLayout.addView( mSurface );
 		setContentView( mLayout );
+		if( mPref.getBoolean( "enable_capture", false ) )
+			mCaptureSurface = mSurface;
 
 		SurfaceHolder holder = mSurface.getHolder();
 		holder.setType( SurfaceHolder.SURFACE_TYPE_GPU );
@@ -1225,6 +1228,13 @@ class EngineSurface extends SurfaceView implements SurfaceHolder.Callback, View.
 		return super.dispatchKeyEvent( event );
 	}
 
+	@Override
+	public boolean onCapturedPointerEvent( MotionEvent e )
+	{
+		XashActivity.handler.handleCapturedEvent( e );
+		return true;
+	}
+
 }
 
 class XashBinding
@@ -1401,7 +1411,7 @@ class XashBinding
 	{
 		boolean sh = show != 0;
 		XashActivity.fMouseShown = sh;
-		XashActivity.handler.showMouse( sh );
+		XashActivity.handler.showMouse( sh, XashActivity.mCaptureSurface );
 	}
 
 		// Just opens browser or update page

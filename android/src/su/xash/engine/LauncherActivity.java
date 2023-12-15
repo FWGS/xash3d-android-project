@@ -32,7 +32,7 @@ public class LauncherActivity extends Activity
 	
 	static EditText cmdArgs, resPath, writePath, resScale, resWidth, resHeight, debuggerCommand;
 	static ToggleButton useVolume, resizeWorkaround, useRoDir;
-	static CheckBox	checkUpdates, immersiveMode, useRoDirAuto;
+	static CheckBox	checkUpdates, immersiveMode, useRoDirAuto, enablePointerCapture;
 	static TextView tvResPath, resResult;
 	static RadioButton radioScale, radioCustom;
 	static RadioGroup scaleGroup;
@@ -185,6 +185,7 @@ public class LauncherActivity extends Activity
 		debuggerCommand = (EditText) findViewById( R.id.debugger_command );
 		debugger = (CheckBox) findViewById( R.id.debugger );
 		debuggerWait = (CheckBox) findViewById( R.id.debugger_wait );
+		enablePointerCapture = (CheckBox) findViewById( R.id.pointer_capture );
 
 		Button selectFolderButton = ( Button ) findViewById( R.id.button_select );
 
@@ -217,6 +218,7 @@ public class LauncherActivity extends Activity
 		}
 		debuggerWait.setChecked( mPref.getBoolean( "gdb_wait", true ));
 		debuggerCommand.setText( mPref.getString( "gdb_command", "" ));
+		enablePointerCapture.setChecked( mPref.getBoolean( "enable_capture", false ));
 		resolution.setChecked( mPref.getBoolean("resolution_fixed", false ) );
 		
 		DisplayMetrics metrics = new DisplayMetrics();
@@ -465,6 +467,7 @@ public class LauncherActivity extends Activity
 		editor.putString( "gdb_command", getDebuggerCommand( debuggerCommand.getText().toString() ));
 		editor.putBoolean( "launch_gdb", debugger.isChecked() );
 		editor.putBoolean( "gdb_wait", debuggerWait.isChecked() );
+		editor.putBoolean( "enable_capture", enablePointerCapture.isChecked() );
 		
 		if( sdk >= 19 )
 			editor.putBoolean("immersive_mode", immersiveMode.isChecked());

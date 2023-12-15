@@ -390,6 +390,7 @@ public class FWGSLib
 		{
 			return "armeabi";
 		}
+		public void requestPointerCapture(View v, boolean enable){}
 	}
 	
 	static class Compat_9 extends Compat
@@ -488,6 +489,13 @@ public class FWGSLib
 		public void stopForeground( Service service, int notificationBehavior )
 		{
 			service.stopForeground( notificationBehavior );
+		}
+		public void requestPointerCapture(View v, boolean enable)
+		{
+			if( enable )
+				v.requestPointerCapture();
+			else
+				v.releasePointerCapture();
 		}
 	}
 
