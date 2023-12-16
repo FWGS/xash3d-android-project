@@ -31,15 +31,22 @@ public class XashTutorialActivity extends Activity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		if( FWGSLib.sdk >= 21 ) // material
-			setTheme(0x0103022e); // Theme_Material_NoActionBar
-		else
-			setTheme(0x01030006); // Theme_NoTitleBar
-		setContentView(R.layout.activity_tutorial);
-		initTexts();
-		initViews();
-		initPages();
-		changeFragment(0);
+		try{
+			if( FWGSLib.sdk >= 21 ) // material
+				setTheme(0x0103022e); // Theme_Material_NoActionBar
+			else
+				setTheme(0x01030006); // Theme_NoTitleBar
+			setContentView(R.layout.activity_tutorial);
+			initTexts();
+			initViews();
+			initPages();
+			changeFragment(0);
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			finish();
+		}
     }
 	
 
@@ -82,8 +89,16 @@ public class XashTutorialActivity extends Activity implements View.OnClickListen
 			if( drawableres == 0 )
 				drawableres = getResources().getIdentifier("page" + String.valueOf(numPages) + "_en", "drawable", getPackageName());
 
-			title.setText(titleres);
-			text.setText(contentres);
+			try {
+				title.setText(titleres);
+				text.setText(contentres);
+			}
+			catch(Exception e) //workaround HTC Sense buggy layout inflater
+			{
+				title.setText("Error loading page");
+				text.setText("Something went wrong with resources inflater, check logs");
+				e.printStackTrace();
+			}
 			if( FWGSLib.isLandscapeOrientation(this) )
 				drawable.setScaleType(ImageView.ScaleType.FIT_CENTER);
 			drawable.setImageResource(drawableres);
