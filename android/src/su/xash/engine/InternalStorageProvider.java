@@ -235,6 +235,8 @@ public class InternalStorageProvider extends DocumentsProvider {
 		row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, mimeType);
 		int flags = file.canWrite() ? DocumentsContract.Document.FLAG_SUPPORTS_DELETE | DocumentsContract.Document.FLAG_SUPPORTS_WRITE
 				: 0;
+		if( file.isDirectory() && flags != 0 )
+			flags |= DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE;
 		// We only show thumbnails for image files - expect a call to
 		// openDocumentThumbnail for each file that has
 		// this flag set
