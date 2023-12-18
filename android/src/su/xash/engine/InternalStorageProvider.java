@@ -105,7 +105,11 @@ public class InternalStorageProvider extends DocumentsProvider {
 								final String displayName) throws FileNotFoundException {
 		File newFile = new File(parentDocumentId, displayName);
 		try {
-			newFile.createNewFile();
+			if( mimeType.equals("vnd.android.document/directory") )
+				newFile.mkdir();
+			else
+				newFile.createNewFile();
+			//Log.i(SIMPLE_NAME, "create file " + displayName + " " + mimeType);
 			return newFile.getAbsolutePath();
 		} catch (IOException e) {
 			Log.e(SIMPLE_NAME, "Error creating new file " + newFile);
