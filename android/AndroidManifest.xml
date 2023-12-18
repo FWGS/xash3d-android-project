@@ -92,6 +92,17 @@
 		<!--<service android:name="su.xash.engine.SteamService" />-->
 		<meta-data android:name="android.max_aspect" android:value="10000.0" />
 		<meta-data android:name="android.allow_multiple_resumed_activities" android:value="true" /> <!-- don't pause engine on foldables -->
+
+		<provider
+				android:name="su.xash.engine.InternalStorageProvider"
+				android:authorities="com.example.android.storageprovider.documents"
+				android:exported="true"
+				android:grantUriPermissions="true"
+				android:permission="android.permission.MANAGE_DOCUMENTS">
+			<intent-filter>
+				<action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+			</intent-filter>
+		</provider>
 	</application>
 
 	<!-- Some devices with Android 2.2 should support native activity, it was in unstable hidden API -->
