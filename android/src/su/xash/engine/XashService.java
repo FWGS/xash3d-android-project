@@ -207,7 +207,7 @@ public class XashService extends Service
 			ctx = context;
 			notificationId += extraId;
 
-			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, 0);
+			final PendingIntent pendingExitIntent = PendingIntent.getBroadcast(ctx, 0, exitIntent, PendingIntent.FLAG_IMMUTABLE);
 
 			if(builder == null)
 				builder = new Notification.Builder(ctx);
@@ -216,7 +216,7 @@ public class XashService extends Service
 				.setLargeIcon(Icon.createWithResource(ctx, R.mipmap.ic_launcher))
 				.setContentTitle(ctx.getString(R.string.app_name))
 				.setContentText(ctx.getString(R.string.app_name))
-				.setContentIntent(PendingIntent.getActivity(ctx.getApplicationContext(), 0, engineIntent, 0))
+				.setContentIntent(PendingIntent.getActivity(ctx.getApplicationContext(), 0, engineIntent, PendingIntent.FLAG_IMMUTABLE))
 				.addAction(new Notification.Action.Builder(R.drawable.empty, ctx.getString(R.string.exit), pendingExitIntent).build())
 				.setOngoing(true)
 				.build();
