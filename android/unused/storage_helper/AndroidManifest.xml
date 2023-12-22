@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="su.xash.storage_helper"
+	android:versionCode="1710"
+	android:versionName="0.20.1"
+	android:installLocation="auto"
+	android:allowAudioPlaybackCapture="true">
+
+	<application android:label="Storage Helper"
+		android:icon="@drawable/ic_launcher"
+		android:allowBackup="false"
+		android:fullBackupOnly="false"
+		android:debuggable="true"
+		android:hardwareAccelerated="true"
+		android:supportsRtl="false"
+		android:usesCleartextTraffic="true">
+		
+		<activity android:exported="true"  android:name="su.xash.storage_helper.StorageHelperActivity"
+			android:label="Storage Helper"
+			android:windowSoftInputMode="adjustResize"
+			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize">
+			<intent-filter>
+				<action android:name="su.xash.storage_helper.StorageHelperActivity"/>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+	</application>
+	<uses-sdk android:minSdkVersion="3" android:targetSdkVersion="34" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> 
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> 
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+	<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+</manifest> 
