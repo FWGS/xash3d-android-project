@@ -465,6 +465,8 @@ class TranscriptScreen {
 				startcol = mSelectStartX;
 			if(row == endrow)
 				endcol = mSelectEndX;
+			if( endcol > columns - 1 )
+				endcol = columns - 1;
 			for (int column = startcol; column <= endcol; column++) {
 				char c = data[offset + column];
 				if (stripColors) {
@@ -2576,7 +2578,15 @@ public class TermView extends View {
 	}
 	public String getSelectedText(boolean strip)
 	{
-		return mTranscriptScreen.getSelectedText(strip);
+		try
+		{
+			return mTranscriptScreen.getSelectedText( strip );
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			return "";
+		}
 	}
 
 }
