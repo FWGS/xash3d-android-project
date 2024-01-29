@@ -169,7 +169,7 @@ def build(bld):
 			self.apkjni_task.jnifiles.update(jnifiles)
 			#self.apkjni_task.set_run_after(last_task)
 			Logs.debug('native libraries: ' + str(libs) +' ' + str(jnifiles))
-			libs.clear()
+			del libs[:]
 
 	# force post all shlibs after processing decorators to make all nodes registered
 	if not bld.targets:
