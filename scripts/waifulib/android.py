@@ -34,6 +34,7 @@ def get_build_tools(sdk, ver):
 def configure(conf):
 	conf.env.JAVACFLAGS=['-encoding', 'utf-8']
 	conf.load('java')
+	conf.env.JAVACFLAGS=['-encoding', 'utf-8']
 	paths = []
 	if not conf.options.termux:
 		conf.start_msg('Checking environment variables')
