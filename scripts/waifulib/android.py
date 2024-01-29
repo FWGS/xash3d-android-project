@@ -247,22 +247,27 @@ class apkjni(Task.Task):
 		add = []
 
 		shutil.copy2(self.inputs[0].abspath(), self.outputs[0].abspath())
+		have_compresslevel = sys.version_info[0] >= 3 and sys.version_info[1] > 7
 
-		with zipfile.ZipFile(outfile, mode='a', compression=comp,compresslevel=self.compresslevel) as zf:
-		
-			for src in self.inputs[1:]:
-				infile  = src.path_from(src.ctx.launch_node())
-				if src in self.jnifiles: # allow generator to specify names
-					arcfile = self.jnifiles[src]
-				else:
-					arcfile = 'lib/' + src.path_from(src.parent.parent) # if libraries already in lib/$arch
-				
-				if arcfile in add: # skip duplicates
-					continue
-				add.append(arcfile)
+		zf = None
+		if sys.version_info[0] >= 3 and sys.version_info[1] > 7:
+			zf = zipfile.ZipFile(outfile, mode='a', compression=comp,compresslevel=self.compresslevel)
+		else:
+			zf = zipfile.ZipFile(outfile, mode='a', compression=comp)
 
+		for src in self.inputs[1:]:
+			infile  = src.path_from(src.ctx.launch_node())
+			if src in self.jnifiles: # allow generator to specify names
+				arcfile = self.jnifiles[src]
+			else:
+				arcfile = 'lib/' + src.path_from(src.parent.parent) # if libraries already in lib/$arch
+			
+			if arcfile in add: # skip duplicates
+				continue
+			add.append(arcfile)
 				Logs.debug('%s: %s <- %s as %s', self.__class__.__name__, outfile, infile, arcfile)
-				zf.write(infile, arcfile)
+			zf.write(infile, arcfile)
+		zf.close()
 
 
 
