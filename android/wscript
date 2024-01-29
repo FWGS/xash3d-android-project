@@ -98,23 +98,27 @@ def build(bld):
 	prebuilts_target = 'armeabi' if bld.env.DEST_CPU == 'arm' else 'arm64-v8a'
 	fileserver_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libfileserver.so')
 	#print(fileserver_node)
-	libs.append(fileserver_node)
-	jnifiles[fileserver_node] = bld.env.PREFIX + '/libfileserver.so'
+	if fileserver_node:
+		libs.append(fileserver_node)
+		jnifiles[fileserver_node] = bld.env.PREFIX + '/libfileserver.so'
 
 	if local_env.ENABLE_GDB:
 		gdb_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libgdb.so')
-		libs.append(gdb_node)
-		jnifiles[gdb_node] = bld.env.PREFIX + '/libgdb.so'
+		if gdb_node:
+			libs.append(gdb_node)
+			jnifiles[gdb_node] = bld.env.PREFIX + '/libgdb.so'
 	if False:
 		gdb_node = bld.path.parent.make_node('xash3d-prebuilts').find_node('lib/'+prebuilts_target+'/libstrace.so')
-		libs.append(gdb_node)
-		jnifiles[gdb_node] = bld.env.PREFIX + '/libstrace.so'
+		if gdb_node:
+			libs.append(gdb_node)
+			jnifiles[gdb_node] = bld.env.PREFIX + '/libstrace.so'
 	@TaskGen.feature('zip')
 	@TaskGen.after_method('create_zip_archive')
 	def copy_zip(self):
 		f = self.zip_task.outputs[0]
-		libs.append(f)
-		jnifiles[f] = 'assets/extras.pk3'
+		if f:
+			libs.append(f)
+			jnifiles[f] = 'assets/extras.pk3'
 
 	@TaskGen.feature('cshlib','cxxshlib')
 	@TaskGen.after_method('apply_android_soname')
@@ -153,6 +157,9 @@ def build(bld):
 			lib = minidbg_output
 		else:
 			lib = dbg_input if local_env.ENABLE_GDB else strip_output
+		if not lib:
+			Logs.error('missing input task for packaging' + self.link_task.outputs[0])
+			return
 		libs.append(lib)
 		tgens.append(self.name)
 		jnifiles[lib] = self.install_path + '/lib' + self.name + '.so'
