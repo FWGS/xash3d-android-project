@@ -23,7 +23,7 @@ def options(opt):
 
 def configure(conf):
 	conf.env.D8_DEBUG = conf.options.BUILD_TYPE != 'release'
-	conf.find_program('xz')
+
 	try:
 		conf.find_program('dwz')
 	except:
@@ -32,6 +32,8 @@ def configure(conf):
 	conf.env.ENABLE_MINIDBG = conf.options.ENABLE_MINIDBG
 	conf.env.ENABLE_GDB = conf.options.ENABLE_GDB
 	conf.env.ENABLE_DWZ = conf.options.ENABLE_DWZ
+	if conf.env.ENABLE_MINIDBG:
+		conf.find_program('xz')
 	if conf.options.STRIP_ALL:
 		conf.env.STRIPFLAGS = '--strip-all'
 	else:
