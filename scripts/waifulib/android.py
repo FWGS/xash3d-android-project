@@ -32,6 +32,7 @@ def get_build_tools(sdk, ver):
 	return os.path.join(sdk, 'build-tools', ver)
 
 def configure(conf):
+	conf.env.JAVACFLAGS=['-encoding', 'utf-8']
 	conf.load('java')
 	paths = []
 	if not conf.options.termux:
