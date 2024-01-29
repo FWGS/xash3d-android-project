@@ -218,7 +218,7 @@ class apkjni1(Task.Task):
 
 		return super(apkjni, self).runnable_status()
 
-import zipfile,shutil
+import zipfile,shutil,sys
 class apkjni(Task.Task):
 	color = 'YELLOW'
 	compresslevel = 9
@@ -265,7 +265,7 @@ class apkjni(Task.Task):
 			if arcfile in add: # skip duplicates
 				continue
 			add.append(arcfile)
-				Logs.debug('%s: %s <- %s as %s', self.__class__.__name__, outfile, infile, arcfile)
+			Logs.debug('%s: %s <- %s as %s', self.__class__.__name__, outfile, infile, arcfile)
 			zf.write(infile, arcfile)
 		zf.close()
 
