@@ -218,7 +218,7 @@ class apkjni1(Task.Task):
 
 		return super(apkjni, self).runnable_status()
 
-import zipfile,shutil,sys
+import zipfile,shutil,sys, time
 class apkjni(Task.Task):
 	color = 'YELLOW'
 	compresslevel = 9
@@ -268,6 +268,9 @@ class apkjni(Task.Task):
 			Logs.debug('%s: %s <- %s as %s', self.__class__.__name__, outfile, infile, arcfile)
 			zf.write(infile, arcfile)
 		zf.close()
+		# apkdex sometimes gets broken file on input!
+		if os.name == 'nt':
+			time.sleep(0.2)
 
 
 
@@ -382,6 +385,7 @@ def apply_d8(self):
 		[self.outdir.make_node(self.env.OUTAPK_UNALIGNED_NOCLASSES), self.d8_task.outputs[0]],
 		self.outdir.make_node(self.env.OUTAPK_UNALIGNED),
 		cwd=self.outdir)
+	self.apkdex_task.set_run_after(self.apkjni_task)
 
 	self.apkalign_task = self.create_task('apkalign',
 		self.outdir.make_node(self.env.OUTAPK_UNALIGNED),
